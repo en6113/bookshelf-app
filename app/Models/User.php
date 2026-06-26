@@ -63,7 +63,7 @@ class User extends Authenticatable
     /**
      * このユーザーがいいね登録したレビュー
      */
-    public function reviewLikes(): BelongsToMany
+    public function LikedReviews(): BelongsToMany
     {
         return $this->BelongsToMany(Review::class, 'review_likes');
     }

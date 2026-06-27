@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Genre;
 use App\Http\Requests\StoreGenreRequest;
 use App\Http\Requests\UpdateGenreRequest;
+use App\Models\Genre;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -76,7 +76,7 @@ class GenreController extends Controller
      */
     public function destroy(Genre $genre): RedirectResponse
     {
-        if($genre->books()->exists()) {
+        if ($genre->books()->exists()) {
             return redirect()->back()->with('error', 'このジャンルには書籍が登録されているため削除できません');
         }
 

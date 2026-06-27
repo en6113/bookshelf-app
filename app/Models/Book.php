@@ -48,8 +48,24 @@ class Book extends Model
     /**
      * この本をお気に入り登録しているユーザー
      */
-    public function favoritedByUsers(): BelongsToMany
+    public function favoriteByUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'favorites');
+    }
+
+    /**
+     * ログインユーザーがお気に入りを切り替えるトグル処理
+     */
+    public function toggleFavorite(): string
+    {
+        $user = auth()->user();
+
+        $result = $this->favoriteByUsers()->toggle($user->id);
+
+        if (count($result['attached']) > 0) {
+            return 'お気に入りに追加しました';
+        }
+
+        return 'お気に入りを解除しました';
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +14,6 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     // 書籍関係
     Route::resource('/books', BookController::class)->except('index', 'show');
-    Route::get('/books/{book}/favorites', fn () => 'お気に入り登録（準備中）')->name('favorites.toggle');
 
     // レビュー関係
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
@@ -21,7 +21,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/review/{review}/like', fn () => 'いいね登録（準備中）')->name('reviews.like');
 
     // お気に入り関係
-    Route::get('/favorites', fn () => 'お気に入り（準備中）')->name('favorites.index');
+    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/books/{book}/favorites', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
     // ジャンル関係
     Route::resource('/genres', GenreController::class);

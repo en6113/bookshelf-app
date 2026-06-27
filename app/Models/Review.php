@@ -41,4 +41,16 @@ class Review extends Model
     {
         return $this->belongsToMany(User::class, 'review_likes');
     }
+
+    /**
+     * ログインユーザーがいいねを切り替えるトグル処理
+     */
+    public function toggleLike(): bool
+    {
+        $user = auth()->user();
+
+        $result = $this->likedByUsers()->toggle($user->id);
+
+        return count($result['attached']) > 0;
+    }
 }

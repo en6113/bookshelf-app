@@ -59,4 +59,14 @@ class ReviewController extends Controller
 
         return redirect()->route('books.show', $review->book_id)->with('success', 'レビューを削除しました');
     }
+
+    /**
+     * いいねのトグル処理
+     */
+    public function toggle(Review $review): RedirectResponse
+    {
+        $review->toggleLike();
+
+        return redirect()->back();
+    }
 }

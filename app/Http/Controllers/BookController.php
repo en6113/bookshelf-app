@@ -26,7 +26,12 @@ class BookController extends Controller
      */
     public function show(Book $book): View
     {
-        $book->load('genres');
+        $book->load([
+            'genres',
+            'reviews' => function ($query) {
+                $query->withCount('likedByUsers');
+            },
+        ]);
 
         return view('books.show', compact('book'));
     }

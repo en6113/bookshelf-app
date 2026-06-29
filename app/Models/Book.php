@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -22,15 +23,15 @@ class Book extends Model
     ];
 
     /**
-     * この本を作成したユーザー
+     * この本が属するユーザー(多対1)
      */
-    public function user(): HasMany
+    public function user(): BelongsTo
     {
-        return $this->hasMany(User::class);
+        return $this->belongsTo(User::class);
     }
 
     /**
-     * この本に関連するジャンル
+     * この本に関連するジャンル（多対多）
      */
     public function genres(): BelongsToMany
     {
@@ -38,7 +39,7 @@ class Book extends Model
     }
 
     /**
-     * この本に紐づくレビュー
+     * この本に紐づくレビュー（1対多）
      */
     public function reviews(): HasMany
     {
@@ -46,7 +47,7 @@ class Book extends Model
     }
 
     /**
-     * この本をお気に入り登録しているユーザー
+     * この本をお気に入り登録しているユーザー（多対多）
      */
     public function favoriteByUsers(): BelongsToMany
     {

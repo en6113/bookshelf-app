@@ -1,34 +1,34 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Api\V1;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class UpdateBookRequest extends FormRequest
+class StoreBookRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
             'author' => 'required|string|max:100',
-            'isbn' => [
-                'required',
-                'string',
-                'min:10',
-                'max:13',
-                Rule::unique('books', 'isbn')->ignore($this->route('book')),
-            ],
+            'isbn' => 'required|string|min:10|max:13|unique:books',
             'published_date' => 'required|date',
             'description' => 'nullable|string|max:255',
             'image_url' => 'nullable|string|max:255|url',
             'genres' => 'required|array',
             'genres.*' => 'integer|exists:genres,id',
+            'user_id' => 'required|integer|exists:users,id',
         ];
     }
 
@@ -47,6 +47,7 @@ class UpdateBookRequest extends FormRequest
             'description.max' => '説明は255文字以内で入力してください',
             'image_url.url' => '画像URLはURL形式で入力してください',
             'genres.required' => 'ジャンルを1つ以上選択してください',
+            'user_id.required' => 'ユーザーIDを入力してください',
         ];
     }
 }

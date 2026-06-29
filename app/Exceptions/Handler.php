@@ -2,7 +2,10 @@
 
 namespace App\Exceptions;
 
+use App\Models\Book;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +29,24 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    /**
+     * Render an exception into an HTTP response.
+     */
+    public function render($request, Throwable $e): Response
+    {
+        if ($request->is('api/*') && $e instanceof ModelNotFoundException) {
+            $message = $e->getModel() === Book::class
+                ? '指定された書籍が見つかりませんでした'
+                : '指定されたデータが見つかりませんでした';
+
+            return response()->json([
+                'message' => $message,
+                'error' => 'NOT_FOUND',
+            ], 404);
+        }
+
+        return parent::render($request, $e);
     }
 }

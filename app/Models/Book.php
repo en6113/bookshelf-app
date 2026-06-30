@@ -23,7 +23,7 @@ class Book extends Model
     ];
 
     /**
-     * この本が属するユーザー(多対1)
+     * この書籍が属するユーザー(1対1)
      */
     public function user(): BelongsTo
     {
@@ -31,7 +31,7 @@ class Book extends Model
     }
 
     /**
-     * この本に関連するジャンル（多対多）
+     * この書籍に関連するジャンル（多対多）
      */
     public function genres(): BelongsToMany
     {
@@ -39,7 +39,7 @@ class Book extends Model
     }
 
     /**
-     * この本に紐づくレビュー（1対多）
+     * この書籍に紐づくレビュー（1対多）
      */
     public function reviews(): HasMany
     {
@@ -47,7 +47,7 @@ class Book extends Model
     }
 
     /**
-     * この本をお気に入り登録しているユーザー（多対多）
+     * この書籍をお気に入り登録しているユーザー（多対多）
      */
     public function favoriteByUsers(): BelongsToMany
     {

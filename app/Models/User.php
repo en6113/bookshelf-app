@@ -45,7 +45,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * このユーザーに紐づくレビュー
+     * このユーザーが投稿したレビュー(1対多)
      */
     public function reviews(): HasMany
     {
@@ -53,18 +53,10 @@ class User extends Authenticatable
     }
 
     /**
-     * このユーザーがお気に入り登録した書籍
+     * このユーザーがお気に入り登録した書籍（多対多）
      */
     public function favoriteBooks(): BelongsToMany
     {
         return $this->BelongsToMany(Book::class, 'favorites');
-    }
-
-    /**
-     * このユーザーがいいね登録したレビュー
-     */
-    public function LikedReviews(): BelongsToMany
-    {
-        return $this->BelongsToMany(Review::class, 'review_likes');
     }
 }

@@ -15,7 +15,7 @@ class Genre extends Model
     ];
 
     /**
-     * このジャンルに関連する書籍
+     * このジャンルに関連する書籍(多対多)
      */
     public function books(): BelongsToMany
     {

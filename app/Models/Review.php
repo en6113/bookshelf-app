@@ -19,7 +19,7 @@ class Review extends Model
     ];
 
     /**
-     * このレビューが属するユーザー
+     * このレビューが属するユーザー(多対1)
      */
     public function user(): BelongsTo
     {
@@ -27,7 +27,7 @@ class Review extends Model
     }
 
     /**
-     * このレビューが属する書籍
+     * このレビューが属する書籍（多対1）
      */
     public function book(): BelongsTo
     {
@@ -35,7 +35,7 @@ class Review extends Model
     }
 
     /**
-     * このレビューにいいねをしたユーザー
+     * このレビューにいいねをしたユーザー（多対多）
      */
     public function likedByUsers(): BelongsToMany
     {

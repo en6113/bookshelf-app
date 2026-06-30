@@ -32,7 +32,7 @@ class RegistrationTest extends TestCase
         ]);
 
         // Assert
-        $response->assertRedirect(route('tasks.index'));
+        $response->assertRedirect(route('books.index'));
         $this->assertDatabaseHas('users', [
             'name' => 'テストユーザー',
             'email' => 'test@example.com',

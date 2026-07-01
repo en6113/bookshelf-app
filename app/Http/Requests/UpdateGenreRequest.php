@@ -19,7 +19,7 @@ class UpdateGenreRequest extends FormRequest
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('genres', 'name')->ignore($this->route('name')),
+                Rule::unique('genres', 'name')->ignore($this->route('genre')),
             ],
         ];
     }

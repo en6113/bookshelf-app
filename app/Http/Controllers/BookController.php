@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class BookController extends Controller
@@ -55,11 +56,10 @@ class BookController extends Controller
         $validated = $request->validated();
         $validated['user_id'] = auth()->id();
 
-        $book = Book::create($validated);
-
-        if ($request->has('genres')) {
+        DB::transaction(function () use ($validated, $request) {
+            $book = Book::create($validated);
             $book->genres()->attach($request->genres);
-        }
+        });
 
         return redirect()->route('books.index')->with('success', '書籍を登録しました');
     }
@@ -85,11 +85,10 @@ class BookController extends Controller
         $this->authorize('update', $book);
         $validated = $request->validated();
 
-        $book->update($validated);
-
-        if ($request->has('genres')) {
-            $book->genres()->sync($request->genres);
-        }
+        DB::transaction(function () use ($book, $validated, $request) {
+            $book->update($validated);
+            $book->genres()->sync($request->genres ?? []);
+        });
 
         return redirect()->route('books.index')->with('success', '書籍を更新しました');
     }

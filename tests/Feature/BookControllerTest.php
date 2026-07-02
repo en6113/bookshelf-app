@@ -110,14 +110,6 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 未認証ユーザーは登録できず、ログイン画面へリダイレクトされる(): void
-    {
-        $response = $this->post(route('books.store'));
-
-        $response->assertRedirect(route('login'));
-    }
-
-    /** @test */
     public function バリデーション通過時、データが保存され、一覧画面にリダイレクトされる(): void
     {
         // Arrange

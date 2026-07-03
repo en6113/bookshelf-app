@@ -13,7 +13,7 @@ class ReviewController extends Controller
     /**
      * レビュー保存
      */
-    public function store(ReviewRequest $request, Book $book): View
+    public function store(ReviewRequest $request, Book $book): RedirectResponse
     {
         $validated = $request->validated();
         $validated['user_id'] = auth()->id();
@@ -21,7 +21,7 @@ class ReviewController extends Controller
 
         Review::create($validated);
 
-        return view('books.show', compact('book'))->with('success', 'レビューを投稿しました');
+        return redirect()->route('books.show', $book)->with('success', 'レビューを投稿しました');
     }
 
     /**
@@ -29,6 +29,8 @@ class ReviewController extends Controller
      */
     public function edit(Review $review): View
     {
+        $this->authorize('update', $review);
+
         $review->load('book');
 
         return view('reviews.edit', compact('review'));
@@ -67,6 +69,6 @@ class ReviewController extends Controller
     {
         $review->toggleLike();
 
-        return redirect()->back();
+        return redirect()->route('books.show', $review->book_id);
     }
 }

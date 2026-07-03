@@ -25,6 +25,6 @@ class FavoriteController extends Controller
     {
         $message = $book->toggleFavorite();
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->route('books.show', $book->id)->with('success', $message);
     }
 }

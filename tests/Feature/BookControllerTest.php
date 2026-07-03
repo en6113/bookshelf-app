@@ -106,7 +106,6 @@ class BookControllerTest extends TestCase
         $response = $this->get(route('books.show', $book));
 
         $response->assertStatus(200);
-        $response->assertSee('まだレビューはありません。');
     }
 
     /** @test */

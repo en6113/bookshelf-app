@@ -59,4 +59,12 @@ class User extends Authenticatable
     {
         return $this->BelongsToMany(Book::class, 'favorites');
     }
+
+    /**
+     * このユーザーがいいねしたレビュー（多対多）
+     */
+    public function likedReviews(): BelongsToMany
+    {
+        return $this->BelongsToMany(Review::class, 'review_likes');
+    }
 }

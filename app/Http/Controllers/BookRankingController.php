@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\GetTopRatedBooksAction;
 use Illuminate\View\View;
 
-class RankingController extends Controller
+class BookRankingController extends Controller
 {
     public function index(GetTopRatedBooksAction $getTopRatedBooks): View
     {

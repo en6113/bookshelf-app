@@ -13,30 +13,13 @@ class UnauthenticatedRedirectTest extends TestCase
     use RefreshDatabase;
 
     /** @test */
-    public function 未認証ユーザーは書籍登録にアクセスするとログインページにリダイレクトされる(): void
+    public function 未認証ユーザーはレビュー投稿をしようとするとログインページにリダイレクトされる(): void
     {
+        // Arrange
+        $book = Book::factory()->create();
+
         // Act
-        $response = $this->get(route('books.create'));
-
-        // Assert
-        $response->assertRedirect(route('login'));
-    }
-
-    /** @test */
-    public function 未認証ユーザーはお気に入りにアクセスするとログインページにリダイレクトされる(): void
-    {
-        // Act
-        $response = $this->get(route('favorites.index'));
-
-        // Assert
-        $response->assertRedirect(route('login'));
-    }
-
-    /** @test */
-    public function 未認証ユーザーはジャンル管理にアクセスするとログインページにリダイレクトされる(): void
-    {
-        // Act
-        $response = $this->get(route('genres.index'));
+        $response = $this->post(route('reviews.store', $book));
 
         // Assert
         $response->assertRedirect(route('login'));
@@ -68,6 +51,36 @@ class UnauthenticatedRedirectTest extends TestCase
 
         // Act
         $response = $this->post(route('reviews.like', $review));
+
+        // Assert
+        $response->assertRedirect(route('login'));
+    }
+
+    /** @test */
+    public function 未認証ユーザーは書籍登録にアクセスするとログインページにリダイレクトされる(): void
+    {
+        // Act
+        $response = $this->get(route('books.create'));
+
+        // Assert
+        $response->assertRedirect(route('login'));
+    }
+
+    /** @test */
+    public function 未認証ユーザーはお気に入りにアクセスするとログインページにリダイレクトされる(): void
+    {
+        // Act
+        $response = $this->get(route('favorites.index'));
+
+        // Assert
+        $response->assertRedirect(route('login'));
+    }
+
+    /** @test */
+    public function 未認証ユーザーはジャンル管理にアクセスするとログインページにリダイレクトされる(): void
+    {
+        // Act
+        $response = $this->get(route('genres.index'));
 
         // Assert
         $response->assertRedirect(route('login'));

@@ -2,15 +2,50 @@
 
 namespace Tests\Unit\Models;
 
+use App\Models\Book;
+use App\Models\Review;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class UserTest extends TestCase
 {
-    /**
-     * A basic unit test example.
-     */
-    public function test_example(): void
+    use RefreshDatabase;
+
+    /** @test */
+    public function test_user_has_many_review(): void
     {
-        $this->assertTrue(true);
+        $user = User::factory()->create();
+        $reviews = Review::factory()->for($user)->count(2)->create();
+
+        $this->assertCount(2, $user->reviews);
+        $this->assertTrue($user->reviews->contains($reviews->first()));
+    }
+
+    /** @test */
+    public function test_user_belongs_to_many_favorite_books(): void
+    {
+        $user = User::factory()->create();
+        $book = Book::factory()->create();
+
+        $user->favoriteBooks()->attach($book->id);
+
+        $user->load('favoriteBooks');
+
+        $this->assertTrue($user->favoriteBooks->contains($book));
+    }
+
+    /** @test */
+    public function test_user_belongs_to_many_liked_reviews(): void
+    {
+        $user = User::factory()->create();
+        $reviews = Review::factory()->count(2)->create();
+
+        $user->likedReviews()->attach($reviews->pluck('id'));
+
+        $user->load('likedReviews');
+
+        $this->assertCount(2, $user->likedReviews);
+        $this->assertTrue($user->likedReviews->pluck('id')->contains($reviews->first()->id));
     }
 }

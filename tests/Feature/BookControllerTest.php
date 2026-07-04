@@ -6,13 +6,16 @@ use App\Models\Book;
 use App\Models\Genre;
 use App\Models\Review;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BookControllerTest extends TestCase
 {
     use RefreshDatabase;
+
+    // =========================================================================
+    // 書籍一覧 (GET /books)
+    // =========================================================================
 
     /** @test */
     public function 未ログインでも書籍一覧画面にアクセスでき、書籍一覧が最新順で取得できる(): void
@@ -24,7 +27,7 @@ class BookControllerTest extends TestCase
         // Act
         $response = $this->get(route('books.index'));
 
-        // Arrange
+        // Assert
         $response->assertStatus(200);
         $response->assertViewHas('books');
 
@@ -55,8 +58,12 @@ class BookControllerTest extends TestCase
         });
     }
 
+    // =========================================================================
+    // 書籍詳細 (GET /books/{book})
+    // =========================================================================
+
     /** @test */
-    public function 未ログインでも書籍詳細画面にアクセスでき、ステータスコード200が返る(): void
+    public function 未ログインでも書籍詳細画面にアクセスでき、200が返る(): void
     {
         $book = Book::factory()->create();
 
@@ -66,7 +73,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 指定した書籍の詳細情報が正しく取得できている(): void
+    public function 書籍の詳細情報が正しく取得できている(): void
     {
         // Arrange
         $book = Book::factory()->create();
@@ -99,7 +106,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 書籍にレビューが1件もない場合、画面が崩れたりエラーにならずに200が返る(): void
+    public function 書籍にレビューが1件もない場合も200が返る(): void
     {
         $book = Book::factory()->create();
 
@@ -108,8 +115,12 @@ class BookControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
+    // =========================================================================
+    // 書籍作成 (POST /books/{book})
+    // =========================================================================
+
     /** @test */
-    public function バリデーション通過時、データが保存され、一覧画面にリダイレクトされる(): void
+    public function 書籍を作成するとデータが保存され一覧画面にリダイレクトされる(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -133,7 +144,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function バリデーションエラー時、データベースには保存されず、元の画面にリダイレクトされる(): void
+    public function 書籍作成時にバリデーションエラーがある場合は元の画面にリダイレクトされる(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -159,7 +170,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function トランザクション途中でエラーが発生した際、すべてロールバックされる(): void
+    public function 書籍作成のトランザクション途中でエラーが発生した際はすべてロールバックされる(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -173,21 +184,32 @@ class BookControllerTest extends TestCase
             'genres' => [$genre->id],
         ];
 
-        $this->mock(Book::class, function ($mock) {
-            $mock->makePartial();
-            $mock->shouldReceive('genres')->andReturn(
-                $this->mock(BelongsToMany::class, function ($relationMock) {
-                    $relationMock->shouldReceive('attach')->andThrow(new \RuntimeException('データベース通信エラー発生'));
-                })
-            );
+        // 中間テーブル（book_genre）にデータが入る瞬間に強制エラーを起こす
+        \DB::listen(function ($query) {
+            $sql = strtolower($query->sql);
+
+            if (str_contains($sql, 'book_genre')) {
+                throw new \RuntimeException('中間テーブル保存時に通信エラー発生');
+            }
         });
+
+        // Act
+        try {
+            $this->actingAs($user)->post(route('books.store'), $data);
+        } catch (\RuntimeException $e) {
+            // 意図通りの例外のためスルー
+        }
 
         // Assert
         $this->assertDatabaseMissing('books', ['title' => '例外テストタイトル']);
     }
 
+    // =========================================================================
+    // 書籍編集 (GET /books/{book}/edit)
+    // =========================================================================
+
     /** @test */
-    public function 書籍の作成者本人は、編集画面にアクセスでき、ステータスコード200が返る(): void
+    public function 書籍の作成者本人は編集画面にアクセスでき、200が返る(): void
     {
         $user = User::factory()->create();
         $book = Book::factory()->create(['user_id' => $user->id]);
@@ -198,7 +220,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 他人の書籍の編集画面にアクセスした際、画面が表示されず403エラーになる(): void
+    public function 他人の書籍の編集画面にはアクセスできず、403が返る(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -212,8 +234,12 @@ class BookControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
+    // =========================================================================
+    // 書籍更新 (PUT /books/{book})
+    // =========================================================================
+
     /** @test */
-    public function 書籍の作成者本人は、自身が作成した書籍を更新できる(): void
+    public function 書籍の作成者本人は自身が作成した書籍を更新できる(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -237,7 +263,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 他人が作成した書籍を更新しようとした場合、403エラーになり、_d_bが更新されない(): void
+    public function 他人が作成した書籍を更新しようとした場合、403が返り、更新できない(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -265,8 +291,12 @@ class BookControllerTest extends TestCase
         ]);
     }
 
+    // =========================================================================
+    // 書籍削除 (DELETE /books/{book})
+    // =========================================================================
+
     /** @test */
-    public function 書籍の作成者本人は、自身が作成した書籍を削除できる(): void
+    public function 書籍の作成者本人は自身が作成した書籍を削除できる(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -287,7 +317,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 他人が作成した書籍を削除しようとした場合、403エラーになり、_d_bが更新されない(): void
+    public function 他人が作成した書籍を削除しようとした場合、403が返り、削除できない(): void
     {
         // Arrange
         $user = User::factory()->create();

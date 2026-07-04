@@ -1,33 +1,22 @@
 <?php
 
-namespace Tests\Unit\Requests;
+namespace Tests\Unit\Api\V1;
 
-use App\Http\Requests\UpdateBookRequest;
+use App\Http\Requests\Api\V1\StoreBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
-use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
-class UpdateBookRequestTest extends TestCase
+class StoreBookRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function validator(array $data, ?int $bookId = null): \Illuminate\Validation\Validator
+    private function validator(array $data): \Illuminate\Validation\Validator
     {
-        $request = new UpdateBookRequest;
-
-        // どの書籍（ID）を更新しようとしているか疑似的にルートパラメーターを設定
-        if ($bookId) {
-            $route = new Route('PUT', '/books/{book}', []);
-            $route->bind(new Request); // バウンドの初期化
-            $route->setParameter('book', $bookId);
-
-            $request->setRouteResolver(fn () => $route);
-        }
+        $request = new StoreBookRequest;
 
         return Validator::make($data, $request->rules(), $request->messages());
     }
@@ -38,10 +27,10 @@ class UpdateBookRequestTest extends TestCase
             'user_id' => $user->id,
             'title' => 'テストタイトル',
             'author' => '著者名',
-            'isbn' => '9876543210123',
+            'isbn' => '1234567890123',
             'published_date' => '2026/05/30',
-            'description' => '更新後の書籍の説明',
-            'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=999',
+            'description' => 'テスト書籍の説明',
+            'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=100',
         ], $overrides);
     }
 
@@ -86,6 +75,7 @@ class UpdateBookRequestTest extends TestCase
     public static function requiredFieldProvider(): array
     {
         return [
+            'user_idが空の時' => [['user_id' => ''], 'user_id'],
             'titleが空の時' => [['title' => ''], 'title'],
             'authorが空の時' => [['author' => ''], 'author'],
             'isbnが空の時' => [['isbn' => ''], 'isbn'],
@@ -94,43 +84,21 @@ class UpdateBookRequestTest extends TestCase
     }
 
     /** @test */
-    public function 更新時にisbnが自分自身のレコードと重複していてもバリデーションエラーにならない(): void
+    public function isbnが既に存在している時にバリデーションエラーになる(): void
     {
         // Arrange
+        $existingBook = Book::factory()->create(['isbn' => '1234567890123']);
+
         $user = User::factory()->create();
         $genres = Genre::factory()->count(2)->create();
 
-        $existingBook = Book::factory()->create(['isbn' => '9876543210123']);
-
-        $updateData = $this->validData($user, [
+        $storeData = $this->validData($user, [
             'isbn' => $existingBook->isbn,
             'genres' => $genres->pluck('id')->toArray(),
         ]);
 
         // Act
-        $validator = $this->validator($updateData, $existingBook->id);
-
-        // Assert
-        $this->assertTrue($validator->passes());
-    }
-
-    /** @test */
-    public function 更新時にisbnが他のレコードと重複している場合はバリデーションエラーになる(): void
-    {
-        // Arrange
-        $user = User::factory()->create();
-        $genres = Genre::factory()->count(2)->create();
-
-        $otherBook = Book::factory()->create(['isbn' => '9876543210123']);
-        $myBook = Book::factory()->create(['isbn' => '1111111111111']);
-
-        $updateData = $this->validData($user, [
-            'isbn' => $otherBook->isbn,
-            'genres' => $genres->pluck('id')->toArray(),
-        ]);
-
-        // Act
-        $validator = $this->validator($updateData, $myBook->id);
+        $validator = $this->validator($storeData);
 
         // Assert
         $this->assertFalse($validator->passes());

@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Unit\Requests;
+namespace Tests\Unit\Api\V1;
 
-use App\Http\Requests\UpdateBookRequest;
+use App\Http\Requests\Api\V1\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
 use App\Models\User;
@@ -20,10 +20,9 @@ class UpdateBookRequestTest extends TestCase
     {
         $request = new UpdateBookRequest;
 
-        // どの書籍（ID）を更新しようとしているか疑似的にルートパラメーターを設定
         if ($bookId) {
-            $route = new Route('PUT', '/books/{book}', []);
-            $route->bind(new Request); // バウンドの初期化
+            $route = new Route('PUT', 'api/v1/books/{book}', []);
+            $route->bind(new Request);
             $route->setParameter('book', $bookId);
 
             $request->setRouteResolver(fn () => $route);
@@ -86,6 +85,7 @@ class UpdateBookRequestTest extends TestCase
     public static function requiredFieldProvider(): array
     {
         return [
+            'user_idが空の時' => [['user_id' => ''], 'user_id'],
             'titleが空の時' => [['title' => ''], 'title'],
             'authorが空の時' => [['author' => ''], 'author'],
             'isbnが空の時' => [['isbn' => ''], 'isbn'],

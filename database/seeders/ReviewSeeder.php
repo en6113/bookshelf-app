@@ -17,17 +17,13 @@ class ReviewSeeder extends Seeder
         $users = User::all();
         $books = Book::all();
 
-        $distribution = [2, 3, 4, 2, 3, 4, 2, 3, 4, 2, 3]; // 合計32件
+        foreach ($books as $book) {
+            $reviewCount = rand(2, 4);
 
-        foreach ($books as $index => $book) {
-            $shuffledUsers = $users->shuffle();
-
-            for ($i = 0; $i < $distribution[$index]; $i++) {
-                $user = $shuffledUsers[$i];
-
+            for ($i = 0; $i < $reviewCount; $i++) {
                 Review::factory()->create([
                     'book_id' => $book->id,
-                    'user_id' => $user->id,
+                    'user_id' => $users->random()->id,
                 ]);
             }
         }

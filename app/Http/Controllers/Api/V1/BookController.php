@@ -35,7 +35,7 @@ class BookController extends Controller
         }
 
         // ジャンル検索
-        if ($request->filled('genre_id')) {
+        if ($request->filled('genre')) {
             $query->whereHas('genres', function ($q) use ($request) {
                 $q->where('genres.id', $request->genre_id);
             });

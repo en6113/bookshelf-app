@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BookSort;
+use App\Http\Requests\IndexBookRequest;
 use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
@@ -15,11 +17,35 @@ class BookController extends Controller
     /**
      * 書籍一覧表示
      */
-    public function index(): View
+    public function index(IndexBookRequest $request): View
     {
-        $books = Book::with('genres')->latest()->paginate(10);
+        $genres = Genre::all();
+        $query = Book::with('genres')->withAvg('reviews', 'rating');
 
-        return view('books.index', compact('books'));
+        // キーワード検索
+        if ($request->filled('keyword')) {
+            $keyword = $request->keyword;
+
+            $query->where(function ($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                    ->orwhere('author', 'like', "%{$keyword}%");
+            });
+        }
+
+        // ジャンル検索
+        if ($request->filled('genre')) {
+            $query->whereHas('genres', function ($q) use ($request) {
+                $q->where('genres.id', $request->genre);
+            });
+        }
+
+        // 並び順検索
+        $sortEnum = BookSort::tryFrom($request->input('sort')) ?? BookSort::LATEST;
+        $query = $sortEnum->apply($query);
+
+        $books = $query->paginate(10);
+
+        return view('books.index', compact('books', 'genres'));
     }
 
     /**

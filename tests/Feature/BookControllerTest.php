@@ -18,21 +18,14 @@ class BookControllerTest extends TestCase
     // =========================================================================
 
     /** @test */
-    public function 未ログインでも書籍一覧画面にアクセスでき、書籍一覧が最新順で取得できる(): void
+    public function 未ログインでも書籍一覧画面にアクセスできる(): void
     {
-        // Arrange
-        $oldBook = Book::factory()->create(['created_at' => now()->subDay()]);
-        $newBook = Book::factory()->create(['created_at' => now()]);
-
         // Act
         $response = $this->get(route('books.index'));
 
         // Assert
         $response->assertStatus(200);
-        $response->assertViewHas('books');
-
-        $viewBooks = $response->viewData('books');
-        $this->assertEquals($newBook->id, $viewBooks->first()->id);
+        $response->assertViewIs('books.index');
     }
 
     /** @test */
@@ -58,6 +51,148 @@ class BookControllerTest extends TestCase
         });
     }
 
+    /** @test */
+    public function 書籍一覧でキーワード検索が機能する(): void
+    {
+        // Arrange
+        $authorHitBooks = Book::factory()->count(3)->create(['author' => '夏目 漱石']);
+        Book::factory()->create(['author' => '芥川 龍之介']);
+        $titleHitBook = Book::factory()->create(['title' => '夏目友人帳']);
+
+        $exceptedIds = $authorHitBooks->pluck('id')
+            ->push($titleHitBook->id)
+            ->toArray();
+
+        // Act
+        $response = $this->get(route('books.index', ['keyword' => '夏目']));
+
+        // Assert
+        $response->assertOk();
+
+        $viewBooks = $response->viewData('books');
+        $this->assertCount(4, $viewBooks);
+        $this->assertEqualsCanonicalizing(
+            $exceptedIds,
+            $viewBooks->pluck('id')->toArray()
+        );
+
+        $response->assertSee('夏目 漱石');
+        $response->assertSee('夏目友人帳');
+        $response->assertDontSee('芥川 龍之介');
+    }
+
+    /** @test */
+    public function 書籍一覧でジャンル検索が機能する(): void
+    {
+        // Arrange
+        $genre = Genre::factory()->create();
+        $books = Book::factory()->hasAttached($genre)->count(3)->create();
+        $otherBook = Book::factory()->create(['title' => 'ジャンルが違う本']);
+
+        // Act
+        $response = $this->get(route('books.index', ['genre' => $genre->id]));
+
+        // Assert
+        $response->assertOk();
+        $viewBooks = $response->viewData('books');
+        $this->assertCount(3, $viewBooks);
+        $this->assertEqualsCanonicalizing(
+            $books->pluck('id')->toArray(),
+            $viewBooks->pluck('id')->toArray(),
+        );
+
+        $response->assertDontSee('ジャンルが違う本');
+    }
+
+    /** @test */
+    public function 書籍一覧で並べ替えが機能し、新しい順で並んでいる(): void
+    {
+        // Arrange
+        $oldBook = Book::factory()->create(['created_at' => now()->subDay()]);
+        $newBook = Book::factory()->create(['created_at' => now()]);
+
+        // Act
+        $response = $this->get(route('books.index', ['sort' => 'newest']));
+
+        // Assert
+        $response->assertOk();
+
+        $viewBooks = $response->viewData('books');
+        $this->assertCount(2, $viewBooks);
+        $this->assertEquals($newBook->id, $viewBooks[0]->id);
+        $this->assertEquals($oldBook->id, $viewBooks[1]->id);
+    }
+
+    /** @test */
+    public function 書籍一覧で並べ替えが機能し、古い順で並んでいる(): void
+    {
+        // Arrange
+        $newBook = Book::factory()->create(['created_at' => now()]);
+        $oldBook = Book::factory()->create(['created_at' => now()->subDay()]);
+
+        // Act
+        $response = $this->get(route('books.index', ['sort' => 'oldest']));
+
+        // Assert
+        $response->assertOk();
+
+        $viewBooks = $response->viewData('books');
+        $this->assertCount(2, $viewBooks);
+        $this->assertEquals($oldBook->id, $viewBooks[0]->id);
+        $this->assertEquals($newBook->id, $viewBooks[1]->id);
+    }
+
+    /** @test */
+    public function 書籍一覧で並べ替えが機能し、タイトル順で並んでいる(): void
+    {
+        // Arrange
+        $backBook = Book::factory()->create(['title' => 'それから']);
+        $frontBook = Book::factory()->create(['title' => 'こころ']);
+
+        // Act
+        $response = $this->get(route('books.index', ['sort' => 'title']));
+
+        // Assert
+        $response->assertOk();
+
+        $viewBooks = $response->viewData('books');
+        $this->assertCount(2, $viewBooks);
+        $this->assertEquals($frontBook->id, $viewBooks[0]->id);
+        $this->assertEquals($backBook->id, $viewBooks[1]->id);
+    }
+
+    /** @test */
+    public function 書籍一覧で並べ替えが機能し、レビューの平均評価が高い順で並んでいる(): void
+    {
+        // Arrange
+        $lowRatingBook = Book::factory()->create();
+        $highRatingBook = Book::factory()->create();
+
+        Review::factory()->create(['book_id' => $lowRatingBook->id, 'rating' => 3]);
+        Review::factory()->create(['book_id' => $highRatingBook->id, 'rating' => 5]);
+
+        // Act
+        $response = $this->get(route('books.index', ['sort' => 'rating']));
+
+        // Assert
+        $response->assertOk();
+
+        $viewBooks = $response->viewData('books');
+        $this->assertCount(2, $viewBooks);
+        $this->assertEquals($highRatingBook->id, $viewBooks[0]->id);
+        $this->assertEquals($lowRatingBook->id, $viewBooks[1]->id);
+    }
+
+    /** @test */
+    public function 書籍一覧の検索機能でバリデーションエラー時は元のページにリダイレクトする(): void
+    {
+        $response = $this->get(route('books.index', ['genre' => 9999]));
+
+        // Assert
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors(['genre']);
+    }
+
     // =========================================================================
     // 書籍詳細 (GET /books/{book})
     // =========================================================================
@@ -70,6 +205,7 @@ class BookControllerTest extends TestCase
         $response = $this->get(route('books.show', $book));
 
         $response->assertStatus(200);
+        $response->assertViewIs('books.show');
     }
 
     /** @test */

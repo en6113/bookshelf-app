@@ -29,13 +29,13 @@ Route::middleware('auth')->group(function () {
     Route::resource('/genres', GenreController::class);
 
     // マイレポート関係
-    Route::get('/reports', fn() => 'マイレポート一覧（準備中）')->name('reports.index');
+    Route::get('/reports', fn () => 'マイレポート一覧（準備中）')->name('reports.index');
 
     // 読書計画関係
-    Route::get('/reading-plans', fn() => '読書計画一覧（準備中）')->name('reading-plans.index');
+    Route::get('/reading-plans', fn () => '読書計画一覧（準備中）')->name('reading-plans.index');
 
     // 通知関係
-    Route::get('/notifications', fn() => '通知（準備中）')->name('notifications.index');
+    Route::get('/notifications', fn () => '通知（準備中）')->name('notifications.index');
 });
 
 // ログイン不要で閲覧できるページ（書籍一覧/書籍詳細/ランキング一覧）

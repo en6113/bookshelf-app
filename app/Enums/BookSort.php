@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 enum BookSort: string
 {
-    case LATEST = 'latest';
+    case LATEST = 'newest';
     case OLDEST = 'oldest';
     case TITLE_ASC = 'title';
     case RATING_DESC = 'rating';

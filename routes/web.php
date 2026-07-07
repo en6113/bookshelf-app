@@ -15,6 +15,7 @@ Route::get('/', function () {
 Route::middleware('auth')->group(function () {
     // 書籍関係
     Route::resource('/books', BookController::class)->except('index', 'show');
+    Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn']);
 
     // レビュー関係
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');

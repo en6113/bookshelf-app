@@ -7,6 +7,8 @@ use App\Models\Genre;
 use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 class BookControllerTest extends TestCase
@@ -249,6 +251,69 @@ class BookControllerTest extends TestCase
         $response = $this->get(route('books.show', $book));
 
         $response->assertStatus(200);
+    }
+
+    // =========================================================================
+    // ISBN検索 (GET /books/isbn/{isbn})
+    // =========================================================================
+
+    /** @test */
+    public function isb_n検索をすると書籍データがjson形式で取得できる(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $isbn = '9784101010014';
+
+        Http::fake([
+            'https://www.googleapis.com/books/v1/volumes*' => Http::response([
+                'items' => [
+                    [
+                        'volumeInfo' => [
+                            'title' => 'テスト書籍タイトル',
+                            'authors' => ['テスト著者'],
+                            'publishedDate' => '2026-01-01',
+                            'description' => 'テストの概要説明',
+                            'imageLinks' => ['thumbnail' => 'http://example.com/image.jpg'],
+                        ],
+                    ],
+                ],
+            ], Response::HTTP_OK),
+        ]);
+
+        // Act
+        $response = $this->actingAs($user)->getJson('books/isbn/'.$isbn);
+
+        // Assert
+        $response->assertStatus(200);
+        $response->assertJson([
+            'title' => 'テスト書籍タイトル',
+            'author' => 'テスト著者',
+            'published_date' => '2026-01-01',
+            'description' => 'テストの概要説明',
+            'image_url' => 'http://example.com/image.jpg',
+        ]);
+    }
+
+    /** @test */
+    public function isb_n検索で書籍が見つからない時は404エラーとメッセージが返る(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $isbn = 1234567890123;
+
+        Http::fake([
+            'https://www.googleapis.com/books/v1/volumes*' => Http::response([
+                'totalItems' => 0,
+                // itemsを含めない
+            ], Response::HTTP_OK),
+        ]);
+
+        // Act
+        $response = $this->actingAs($user)->get('books/isbn/'.$isbn);
+
+        // Assert
+        $response->assertStatus(404);
+        $response->assertJson(['error' => '該当する書籍が見つかりませんでした。']);
     }
 
     // =========================================================================

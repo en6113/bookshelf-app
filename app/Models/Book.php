@@ -73,4 +73,12 @@ class Book extends Model
 
         return 'お気に入りを解除しました';
     }
+
+    /**
+     * この書籍に紐づく読書計画（1対多）
+     */
+    public function readingPlans(): HasMany
+    {
+        return $this->hasMany(ReadingPlan::class);
+    }
 }

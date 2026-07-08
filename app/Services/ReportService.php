@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Book;
-use App\Models\Genre;
 use App\Models\ReadingPlan;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -24,41 +22,43 @@ class ReportService
         });
 
         // 高評価書籍TOP5
-        $topRatedBooks = Book::whereHas('reviews', function ($query) use ($userId) {
-            $query->where('user_id', $userId)->where('rating', '>=', 4);
-        })
+        $topReviews = $user->reviews()
+            ->with('book')
+            ->where('rating', '>=', 4)
+            ->orderByDesc('rating')
+            ->orderBy('created_at')
             ->limit(5)
-            ->get()
-            ->map(function ($book) use ($userId) {
-                return [
-                    'id' => $book->id,
-                    'title' => $book->title,
-                    'author' => $book->author,
-                    'rating' => $book->reviews()->where('user_id', $userId)->value('rating') ?? 0,
-                ];
-            })->toArray();
+            ->get();
 
-        // ジャンル別評価傾向TOP5
-        $allGenreRatings = Genre::get()->map(function ($genre) use ($userId) {
-            // ユーザーのジャンル別のレビューを取得
-            $userReviewsInGenre = DB::table('book_genre')
-                ->join('reviews', 'book_genre.book_id', '=', 'reviews.book_id')
-                ->where('book_genre.genre_id', $genre->id)
-                ->where('reviews.user_id', $userId);
-
-            // ジャンル別のレビュー数と平均評価
-            $count = $userReviewsInGenre->count();
-            $averageRating = $userReviewsInGenre->avg('rating') ?? 0;
+        $topRatedBooks = $topReviews->map(function ($review) {
+            $book = $review->book;
 
             return [
-                'id' => $genre->id,
-                'name' => $genre->name,
-                'count' => $count,
-                'average_rating' => $averageRating,
+                'id' => $book->id,
+                'title' => $book->title,
+                'author' => $book->author,
+                'rating' => $review->rating,
             ];
-        });
+        })->toArray();
 
-        $genreRatings = $allGenreRatings->sortByDesc('average_rating')->take(5)->values()->toArray();
+        // ジャンル別評価傾向TOP5
+        $genreRatings = DB::table('genres')
+            ->join('book_genre', 'genres.id', '=', 'book_genre.genre_id')
+            ->join('reviews', 'book_genre.book_id', '=', 'reviews.book_id')
+            ->where('reviews.user_id', $userId)
+            ->select([
+                'genres.id',
+                'genres.name',
+            ])
+            ->selectRaw('COUNT(reviews.id) as count')
+            ->selectRaw('AVG(reviews.rating) as average_rating')
+            ->groupBy('genres.id', 'genres.name')
+            ->orderByDesc('average_rating')
+            ->orderByDesc('count')
+            ->limit(5)
+            ->get()
+            ->map(fn ($item) => (array) $item)
+            ->toArray();
 
         return [
             // 基本統計（総レビュー数、読了冊数、平均評価）

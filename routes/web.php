@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookRankingController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,7 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/genres', GenreController::class);
 
     // マイレポート関係
-    Route::get('/reports', fn () => 'マイレポート一覧（準備中）')->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // 読書計画関係
     Route::get('/reading-plans', fn () => '読書計画一覧（準備中）')->name('reading-plans.index');

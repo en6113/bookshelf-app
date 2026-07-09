@@ -5,8 +5,8 @@ namespace App\Models;
 use App\Enums\ReadingPlanStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ReadingPlan extends Model
 {
@@ -16,13 +16,13 @@ class ReadingPlan extends Model
         'user_id',
         'book_id',
         'target_date',
-        'completed_date',
+        'completed_at',
         'status',
     ];
 
     protected $casts = [
-        'target_date' => 'date',
-        'completed_date' => 'datetime',
+        'target_date' => 'date:Y-m-d',
+        'completed_at' => 'datetime',
         'status' => ReadingPlanStatus::class,
     ];
 
@@ -47,6 +47,10 @@ class ReadingPlan extends Model
      */
     public function scopeOfStatus(Builder $query, ?string $status): Builder
     {
+        if (blank($status)) {
+            return $query;
+        }
+
         $statusEnum = ReadingPlanStatus::tryFrom($status);
 
         return $statusEnum

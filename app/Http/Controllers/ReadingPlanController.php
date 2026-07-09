@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ReadingPlanStatus;
+use App\Http\Requests\IndexReadingPlanRequest;
+use App\Http\Requests\ReadingPlanRequest;
 use App\Models\Book;
 use App\Models\ReadingPlan;
-use App\Http\Requests\IndexReadingPlanRequest;
-use App\Http\Requests\StoreReadingPlanRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -17,11 +17,12 @@ class ReadingPlanController extends Controller
      */
     public function index(IndexReadingPlanRequest $request): View
     {
-        $currentStatus = $request->input('status');
+        $currentStatus = $request->validated()['status'] ?? null;
 
         $readingPlans = ReadingPlan::with('book')
             ->where('user_id', auth()->id())
             ->ofStatus($currentStatus)
+            ->latest()
             ->get();
 
         return view('reading-plans.index', compact('readingPlans', 'currentStatus'));
@@ -30,7 +31,7 @@ class ReadingPlanController extends Controller
     /**
      * 読書計画作成画面表示
      */
-    public function create(): view
+    public function create(): View
     {
         $books = Book::all();
 
@@ -40,7 +41,7 @@ class ReadingPlanController extends Controller
     /**
      * 読書計画の保存
      */
-    public function store(StoreReadingPlanRequest $request): RedirectResponse
+    public function store(ReadingPlanRequest $request): RedirectResponse
     {
         $validated = $request->validated();
         $validated['user_id'] = auth()->id();
@@ -55,14 +56,20 @@ class ReadingPlanController extends Controller
      */
     public function edit(ReadingPlan $readingPlan)
     {
-        return view('reading-plans.edit', $readingPlan);
+        $this->authorize('update', $readingPlan);
+
+        $readingPlan->load('book');
+
+        return view('reading-plans.edit', compact('readingPlan'));
     }
 
     /**
      * 読書計画の更新
      */
-    public function update(StoreReadingPlanRequest $request, ReadingPlan $readingPlan): RedirectResponse
+    public function update(ReadingPlanRequest $request, ReadingPlan $readingPlan): RedirectResponse
     {
+        $this->authorize('update', $readingPlan);
+
         $validated = $request->validated();
 
         $readingPlan->update($validated);
@@ -75,6 +82,8 @@ class ReadingPlanController extends Controller
      */
     public function destroy(ReadingPlan $readingPlan): RedirectResponse
     {
+        $this->authorize('delete', $readingPlan);
+
         $readingPlan->delete();
 
         return redirect()->route('reading-plans.index')->with('success', '読書計画を削除しました');
@@ -85,11 +94,13 @@ class ReadingPlanController extends Controller
      */
     public function complete(ReadingPlan $readingPlan): RedirectResponse
     {
+        $this->authorize('complete', $readingPlan);
+
         $readingPlan->update([
             'status' => ReadingPlanStatus::Completed,
             'completed_at' => now(),
         ]);
 
-        return redirect()->route('reading-plans.index')->with('success', 'この読書計画を読了にしました');
+        return redirect()->route('reading-plans.index')->with('success', 'ステータスを読了に変更しました');
     }
 }

@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\ReadingPlanStatus;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
+use Illuminate\Validation\Rule;
 
 class IndexReadingPlanRequest extends FormRequest
 {
@@ -18,19 +20,19 @@ class IndexReadingPlanRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'status' => ['nullable', 'string', new Enum(ReadingPlanStatus::class)],
+            'status' => ['nullable', Rule::enum(ReadingPlanStatus::class)],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'sort.enum_value' => '指定された状態から選択してください',
+            'status.Illuminate\Validation\Rules\Enum' => '選択肢から選択してください',
         ];
     }
 }

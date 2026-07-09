@@ -34,8 +34,8 @@ Route::middleware('auth')->group(function () {
     // マイレポート関係
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
-    // 読書計画関係
-    Route::put('/reading-plans/{reading-plan}', [ReadingPlanController::class, 'complete'])->name('reading-plans.complete');
+    // 読書計画関係(completeはビューに合わせてpostにしている)
+    Route::post('/reading-plans/{reading_plan}/complete', [ReadingPlanController::class, 'complete'])->name('reading-plans.complete');
     Route::resource('/reading-plans', ReadingPlanController::class);
 
     // 通知関係

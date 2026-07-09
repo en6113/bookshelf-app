@@ -85,4 +85,24 @@ class UnauthenticatedRedirectTest extends TestCase
         // Assert
         $response->assertRedirect(route('login'));
     }
+
+    /** @test */
+    public function 未認証ユーザーはマイレポートにアクセスするとログインページにリダイレクトされる(): void
+    {
+        // Act
+        $response = $this->get(route('reports.index'));
+
+        // Assert
+        $response->assertRedirect(route('login'));
+    }
+
+    /** @test */
+    public function 未認証ユーザーは読書計画にアクセスするとログインページにリダイレクトされる(): void
+    {
+        // Act
+        $response = $this->get(route('reading-plans.index'));
+
+        // Assert
+        $response->assertRedirect(route('login'));
+    }
 }

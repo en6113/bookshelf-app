@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookRankingController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
@@ -33,8 +34,9 @@ Route::middleware('auth')->group(function () {
     // マイレポート関係
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
-    // 読書計画関係
-    Route::get('/reading-plans', fn () => '読書計画一覧（準備中）')->name('reading-plans.index');
+    // 読書計画関係(completeはビューに合わせてpostにしている)
+    Route::post('/reading-plans/{reading_plan}/complete', [ReadingPlanController::class, 'complete'])->name('reading-plans.complete');
+    Route::resource('/reading-plans', ReadingPlanController::class);
 
     // 通知関係
     Route::get('/notifications', fn () => '通知（準備中）')->name('notifications.index');

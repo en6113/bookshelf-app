@@ -67,4 +67,12 @@ class User extends Authenticatable
     {
         return $this->BelongsToMany(Review::class, 'review_likes');
     }
+
+    /**
+     * このユーザーが作成した読書計画(1対多)
+     */
+    public function readingPlans(): HasMany
+    {
+        return $this->hasMany(ReadingPlan::class);
+    }
 }

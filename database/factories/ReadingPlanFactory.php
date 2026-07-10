@@ -23,6 +23,7 @@ class ReadingPlanFactory extends Factory
             'user_id' => User::factory(),
             'book_id' => Book::factory(),
             'target_date' => fake()->dateTimeBetween('now', '+1month'),
+            'status' => 'in_progress',
         ];
     }
 }

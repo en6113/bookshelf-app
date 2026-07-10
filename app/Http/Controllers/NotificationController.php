@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-use Illuminate\Notifications\DatabaseNotification;
 
 class NotificationController extends Controller
 {
@@ -21,11 +20,9 @@ class NotificationController extends Controller
     /**
      * 通知を既読にする
      */
-    public function read(DatabaseNotification $notification): RedirectResponse
+    public function read(string $id): RedirectResponse
     {
-        if ($notification->notidiable_id !== auth()->id()) {
-            abort(403);
-        }
+        $notification = auth()->user()->notifications()->findOrFail($id);
 
         $notification->markAsRead();
 

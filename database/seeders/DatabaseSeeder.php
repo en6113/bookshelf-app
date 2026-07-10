@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,6 +19,11 @@ class DatabaseSeeder extends Seeder
             ReviewSeeder::class,
             FavoriteSeeder::class,
             ReviewLikeSeeder::class,
+            ReadingPlanSeeder::class,
         ]);
+
+        Artisan::call('notifications:send');
+        Artisan::call('notifications:overdue');
+        Artisan::call('notifications:prune');
     }
 }

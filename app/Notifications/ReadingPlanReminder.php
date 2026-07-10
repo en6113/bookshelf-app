@@ -40,20 +40,29 @@ class ReadingPlanReminder extends Notification
     public function toArray(object $notifiable): array
     {
         $notificationData = match ($this->timing) {
+            'over_due_date' => [
+                'timing' => 'over_due_date',
+                'title' => '期日が過ぎました',
+                'body' => "「{$this->readingPlan->book->title}」の目標期日を超過しました。",
+            ],
             'before_3_days' => [
                 'timing' => 'three_days_before',
+                'title' => 'まもなく期日です',
                 'body' => "「{$this->readingPlan->book->title}」の目標期日まであと3日です!",
             ],
             'today' => [
                 'timing' => 'on_due_date',
-                'body' => "本日は「{$this->readingPlan->book->title}」の目標期日当日です！",
+                'title' => '本日が期日です',
+                'body' => "本日は「{$this->readingPlan->book->title}」の目標期日当日です!",
             ],
             'after_3_days' => [
                 'timing' => 'three_days_after',
+                'title' => '期日が過ぎています',
                 'body' => "「{$this->readingPlan->book->title}」の目標期日から3日が経過しました。進捗はどうですか？",
             ],
             default => [
                 'timing' => 'default',
+                'title' => '読書計画リマインダー',
                 'body' => '読書計画のリマインダーです。',
             ],
         };
@@ -61,7 +70,7 @@ class ReadingPlanReminder extends Notification
         return [
             'reading_plan_id' => $this->readingPlan->id,
             'timing' => $notificationData['timing'],
-            'title' => '読書計画リマインダー',
+            'title' => $notificationData['title'],
             'body' => $notificationData['body'],
         ];
     }

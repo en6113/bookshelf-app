@@ -57,7 +57,7 @@ class UnauthenticatedRedirectTest extends TestCase
     }
 
     /** @test */
-    public function 未認証ユーザーは書籍登録にアクセスするとログインページにリダイレクトされる(): void
+    public function 未認証ユーザーは書籍登録にアクセスできずログインページにリダイレクトされる(): void
     {
         // Act
         $response = $this->get(route('books.create'));
@@ -67,7 +67,7 @@ class UnauthenticatedRedirectTest extends TestCase
     }
 
     /** @test */
-    public function 未認証ユーザーはお気に入りにアクセスするとログインページにリダイレクトされる(): void
+    public function 未認証ユーザーはお気に入りにアクセスできずログインページにリダイレクトされる(): void
     {
         // Act
         $response = $this->get(route('favorites.index'));
@@ -77,7 +77,7 @@ class UnauthenticatedRedirectTest extends TestCase
     }
 
     /** @test */
-    public function 未認証ユーザーはジャンル管理にアクセスするとログインページにリダイレクトされる(): void
+    public function 未認証ユーザーはジャンル管理にアクセスできずログインページにリダイレクトされる(): void
     {
         // Act
         $response = $this->get(route('genres.index'));
@@ -87,7 +87,7 @@ class UnauthenticatedRedirectTest extends TestCase
     }
 
     /** @test */
-    public function 未認証ユーザーはマイレポートにアクセスするとログインページにリダイレクトされる(): void
+    public function 未認証ユーザーはマイレポートにアクセスできずログインページにリダイレクトされる(): void
     {
         // Act
         $response = $this->get(route('reports.index'));
@@ -97,12 +97,20 @@ class UnauthenticatedRedirectTest extends TestCase
     }
 
     /** @test */
-    public function 未認証ユーザーは読書計画にアクセスするとログインページにリダイレクトされる(): void
+    public function 未認証ユーザーは読書計画にアクセスできずログインページにリダイレクトされる(): void
     {
         // Act
         $response = $this->get(route('reading-plans.index'));
 
         // Assert
+        $response->assertRedirect(route('login'));
+    }
+
+    /** @test */
+    public function 未認証ユーザーは通知一覧にアクセスできずログインページにリダイレクトされる(): void
+    {
+        $response = $this->get(route('notifications.index'));
+
         $response->assertRedirect(route('login'));
     }
 }

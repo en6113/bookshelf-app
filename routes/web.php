@@ -4,6 +4,7 @@ use App\Http\Controllers\BookController;
 use App\Http\Controllers\BookRankingController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\GenreController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReadingPlanController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
@@ -39,7 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/reading-plans', ReadingPlanController::class);
 
     // 通知関係
-    Route::get('/notifications', fn () => '通知（準備中）')->name('notifications.index');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
 });
 
 // ログイン不要で閲覧できるページ（書籍一覧/書籍詳細/ランキング一覧）

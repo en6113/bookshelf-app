@@ -22,7 +22,7 @@ class ReadingPlanController extends Controller
         $readingPlans = ReadingPlan::with('book')
             ->where('user_id', auth()->id())
             ->ofStatus($currentStatus)
-            ->latest()
+            ->oldest('target_date')
             ->get();
 
         return view('reading-plans.index', compact('readingPlans', 'currentStatus'));

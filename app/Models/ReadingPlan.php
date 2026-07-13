@@ -18,6 +18,7 @@ class ReadingPlan extends Model
         'target_date',
         'completed_at',
         'status',
+        'overdue_notified_at',
     ];
 
     protected $casts = [

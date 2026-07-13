@@ -23,7 +23,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         Artisan::call('notifications:send');
-        Artisan::call('notifications:overdue');
         Artisan::call('notifications:prune');
     }
 }

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('target_date');
             $table->date('completed_at')->nullable();
             $table->string('status')->default(ReadingPlanStatus::InProgress->value);
+            $table->timestamp('overdue_notified_at')->nullable();
             $table->timestamps();
             $table->unique(['user_id', 'book_id']);
         });

@@ -8,4 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Notification extends Model
 {
     use HasFactory;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $casts = [
+        'data' => 'array',
+        'read_at' => 'datetime',
+    ];
 }

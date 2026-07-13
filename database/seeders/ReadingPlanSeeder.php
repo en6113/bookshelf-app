@@ -25,7 +25,7 @@ class ReadingPlanSeeder extends Seeder
         $today = Carbon::today();
 
         foreach ($users as $user) {
-            $userBookIds = $bookIds->random(3)->values();
+            $userBookIds = $bookIds->random(4)->values();
 
             // 期日が3日後（3日前予告の通知対象)
             ReadingPlan::factory()->create([
@@ -43,10 +43,18 @@ class ReadingPlanSeeder extends Seeder
                 'status' => ReadingPlanStatus::InProgress,
             ]);
 
-            // 期日が3日前（3日後再エンゲージメントの通知の対象）
+            // 期日経過時（期日経過時の通知対象）
             ReadingPlan::factory()->create([
                 'user_id' => $user->id,
                 'book_id' => $userBookIds[2],
+                'target_date' => $today->copy()->subDays(1),
+                'status' => ReadingPlanStatus::InProgress,
+            ]);
+
+            // 期日が3日前（3日後再エンゲージメントの通知の対象）
+            ReadingPlan::factory()->create([
+                'user_id' => $user->id,
+                'book_id' => $userBookIds[3],
                 'target_date' => $today->copy()->subDays(3),
                 'status' => ReadingPlanStatus::InProgress,
             ]);
@@ -57,10 +65,10 @@ class ReadingPlanSeeder extends Seeder
 
         if ($targetUser) {
             $usedBookIds = ReadingPlan::where('user_id', $targetUser->id)->pluck('book_id');
-            $targetUserBookIds = $bookIds->diff($usedBookIds)->random(6)->values();
+            $targetUserBookIds = $bookIds->diff($usedBookIds)->random(5)->values();
 
             $addPlans = [
-                // 期日が3日後（3日前予告通知が送られないことの確認用)
+                // 期日が3日後（読了の計画には3日前予告通知が送られないことの確認用)
                 [
                     'user_id' => $targetUser->id,
                     'book_id' => $targetUserBookIds[0],
@@ -68,25 +76,18 @@ class ReadingPlanSeeder extends Seeder
                     'completed_at' => $today->copy()->subDay(1),
                     'status' => ReadingPlanStatus::Completed,
                 ],
-                // 昨日（期日経過通知が送られていることの確認用）
+                // 当日（読了の計画には期日当日通知が送られないことの確認用）
                 [
                     'user_id' => $targetUser->id,
                     'book_id' => $targetUserBookIds[1],
-                    'target_date' => $today->copy()->subDay(1),
-                    'status' => ReadingPlanStatus::InProgress,
-                ],
-                // 当日（期日当日通知が送られないことの確認用）
-                [
-                    'user_id' => $targetUser->id,
-                    'book_id' => $targetUserBookIds[2],
                     'target_date' => $today,
                     'completed_at' => $today->copy()->subDay(2),
                     'status' => ReadingPlanStatus::Completed,
                 ],
-                // 期日が3日前（3日後再エンゲージメント通知が送られないことの確認用）
+                // 期日が3日前（読了の計画には3日後再エンゲージメント通知が送られないことの確認用）
                 [
                     'user_id' => $targetUser->id,
-                    'book_id' => $targetUserBookIds[3],
+                    'book_id' => $targetUserBookIds[2],
                     'target_date' => $today->copy()->subDays(3),
                     'completed_at' => $today->copy()->subDay(3),
                     'status' => ReadingPlanStatus::Completed,
@@ -100,7 +101,7 @@ class ReadingPlanSeeder extends Seeder
             // 自動失効バッチの確認用（保持期間30日超え）
             $expiredPlan = ReadingPlan::factory()->create([
                 'user_id' => $targetUser->id,
-                'book_id' => $targetUserBookIds[4],
+                'book_id' => $targetUserBookIds[3],
                 'target_date' => $today->copy()->subDays(32),
                 'status' => ReadingPlanStatus::InProgress,
             ]);
@@ -123,7 +124,7 @@ class ReadingPlanSeeder extends Seeder
             // 自動失効バッチが送られないことの確認用（保持期間29日）
             $notExpiredPlan = ReadingPlan::factory()->create([
                 'user_id' => $targetUser->id,
-                'book_id' => $targetUserBookIds[5],
+                'book_id' => $targetUserBookIds[4],
                 'target_date' => $today->copy()->subDays(30),
                 'status' => 'in_progress',
             ]);

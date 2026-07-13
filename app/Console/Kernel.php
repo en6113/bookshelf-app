@@ -12,7 +12,6 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        $schedule->command('notifications:overdue')->daily();
         $schedule->command('notifications:send')->dailyAt('20:00');
         $schedule->command('notifications:prune')->daily();
     }

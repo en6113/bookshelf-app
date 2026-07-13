@@ -11,6 +11,7 @@ class ReadingPlanReminder extends Notification
     use Queueable;
 
     protected string $timing;
+
     protected ReadingPlan $readingPlan;
 
     /**

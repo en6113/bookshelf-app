@@ -37,7 +37,7 @@ class BookController extends Controller
         // ジャンル検索
         if ($request->filled('genre')) {
             $query->whereHas('genres', function ($q) use ($request) {
-                $q->where('genres.id', $request->genre_id);
+                $q->where('genres.id', $request->genre);
             });
         }
 
@@ -73,8 +73,8 @@ class BookController extends Controller
         $genres = $validated['genres'];
         unset($validated['genres']);
 
-        return DB::transaction(function () use ($validated, $genres) {
-            $book = Book::create($validated);
+        return DB::transaction(function () use ($request, $validated, $genres) {
+            $book = $request->user()->books()->create($validated);
             $book->genres()->attach($genres);
             $book->load(['genres']);
 
@@ -108,13 +108,6 @@ class BookController extends Controller
     public function destroy(Book $book): JsonResponse
     {
         $this->authorize('delete', $book);
-
-        if (! $book) {
-            return response()->ison([
-                'message' => '指定された書籍が見つかりませんでした',
-                'error_code' => 'BOOK_NOT_FOUND',
-            ], 404);
-        }
 
         $book->delete();
 

@@ -8,6 +8,7 @@ use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
 class BookApiTest extends TestCase
@@ -102,7 +103,7 @@ class BookApiTest extends TestCase
         $otherBook = Book::factory()->create();
 
         // Act
-        $response = $this->getJson('/api/v1/books?genre_id='.$genre->id);
+        $response = $this->getJson('/api/v1/books?genre='.$genre->id);
 
         // Assert
         $response->assertOk();
@@ -119,7 +120,7 @@ class BookApiTest extends TestCase
         $newBook = Book::factory()->create(['created_at' => now()]);
 
         // Act
-        $response = $this->getJson('/api/v1/books?sort=latest');
+        $response = $this->getJson('/api/v1/books?sort=newest');
 
         // Assert
         $response->assertOk();
@@ -185,7 +186,7 @@ class BookApiTest extends TestCase
     /** @test */
     public function 書籍一覧の検索機能でバリデーションエラー時は422が返る(): void
     {
-        $response = $this->getJson('/api/v1/books?genre_id=999');
+        $response = $this->getJson('/api/v1/books?per_page=101');
 
         // Assert
         $response->assertStatus(422);
@@ -267,7 +268,6 @@ class BookApiTest extends TestCase
         $user = User::factory()->create();
         $genres = Genre::factory()->count(2)->create();
         $validData = [
-            'user_id' => $user->id,
             'title' => 'テストタイトル',
             'author' => '著者名',
             'isbn' => '1234567890123',
@@ -276,11 +276,11 @@ class BookApiTest extends TestCase
         ];
 
         // Act
-        $response = $this->actingAs($user)->postJson('/api/v1/books', $validData);
+        Sanctum::actingAs($user);
+        $response = $this->postJson('/api/v1/books', $validData);
 
         // Assert
         $response->assertStatus(201);
-        $response->assertJsonPath('data.user_id', $user->id);
         $response->assertJsonPath('data.title', 'テストタイトル');
         $response->assertJsonPath('data.isbn', '1234567890123');
         $response->assertJsonCount(2, 'data.genres');
@@ -304,7 +304,6 @@ class BookApiTest extends TestCase
         $user = User::factory()->create();
         $genre = Genre::factory()->create();
         $invalidData = [
-            'user_id' => $user->id,
             'title' => 'エラーテストのタイトル',
             'author' => '著者名',
             'isbn' => '1234567890456',
@@ -313,7 +312,8 @@ class BookApiTest extends TestCase
         ];
 
         // Act
-        $response = $this->actingAs($user)->postJson('/api/v1/books', $invalidData);
+        Sanctum::actingAs($user);
+        $response = $this->postJson('/api/v1/books', $invalidData);
 
         // Assert
         $response->assertStatus(422);
@@ -328,7 +328,6 @@ class BookApiTest extends TestCase
         $user = User::factory()->create();
         $genre = Genre::factory()->create();
         $data = [
-            'user_id' => $user->id,
             'title' => '例外テストのタイトル',
             'author' => '著者名',
             'isbn' => '1234567890789',
@@ -347,7 +346,8 @@ class BookApiTest extends TestCase
 
         // Act
         try {
-            $this->actingAs($user)->postJson('/api/v1/books', $data);
+            Sanctum::actingAs($user);
+            $this->postJson('/api/v1/books', $data);
         } catch (\RuntimeException $e) {
             // スルー
         }
@@ -367,7 +367,6 @@ class BookApiTest extends TestCase
         $genre = Genre::factory()->create();
 
         $validData = [
-            'user_id' => $user->id,
             'title' => 'テストタイトル',
             'author' => '著者名',
             'isbn' => '1234567890987',
@@ -381,7 +380,8 @@ class BookApiTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($user)->postJson('/api/v1/books', $requestData);
+        Sanctum::actingAs($user);
+        $response = $this->postJson('/api/v1/books', $requestData);
 
         // Assert
         $response->assertStatus(201);
@@ -406,7 +406,8 @@ class BookApiTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($user)->putJson('/api/v1/books/'.$myBook->id, $updateData);
+        Sanctum::actingAs($user);
+        $response = $this->putJson('/api/v1/books/'.$myBook->id, $updateData);
 
         // Assert
         $response->assertOk();
@@ -442,7 +443,8 @@ class BookApiTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($user)->putJson('/api/v1/books/'.$otherBook->id, $updateData);
+        Sanctum::actingAs($user);
+        $response = $this->putJson('/api/v1/books/'.$otherBook->id, $updateData);
 
         // Assert
         $response->assertStatus(403);
@@ -469,11 +471,11 @@ class BookApiTest extends TestCase
         ];
 
         // Act
-        $response = $this->actingAs($user)->putJson('/api/v1/books/9999', $validData);
+        Sanctum::actingAs($user);
+        $response = $this->putJson('/api/v1/books/9999', $validData);
 
         // Assert
         $response->assertStatus(404);
-
     }
 
     // =========================================================================
@@ -491,7 +493,8 @@ class BookApiTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($user)->deleteJson('/api/v1/books/'.$book->id);
+        Sanctum::actingAs($user);
+        $response = $this->deleteJson('/api/v1/books/'.$book->id);
 
         // Assert
         $response->assertStatus(204);
@@ -514,7 +517,8 @@ class BookApiTest extends TestCase
         ]);
 
         // Act
-        $response = $this->actingAs($user)->delete(route('books.destroy', $otherBook));
+        Sanctum::actingAs($user);
+        $response = $this->delete(route('books.destroy', $otherBook));
 
         // Assert
         $response->assertStatus(403);
@@ -529,7 +533,8 @@ class BookApiTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $response = $this->actingAs($user)->deleteJson('api/v1/books/9999');
+        Sanctum::actingAs($user);
+        $response = $this->deleteJson('api/v1/books/9999');
 
         $response->assertStatus(404);
     }

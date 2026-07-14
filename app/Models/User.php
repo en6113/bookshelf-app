@@ -45,6 +45,14 @@ class User extends Authenticatable
     ];
 
     /**
+     * このユーザーが作成した書籍(1対多)
+     */
+    public function books(): HasMany
+    {
+        return $this->hasMany(Book::class);
+    }
+
+    /**
      * このユーザーが投稿したレビュー(1対多)
      */
     public function reviews(): HasMany

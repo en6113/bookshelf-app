@@ -16,7 +16,6 @@ class BookShowResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user_id' => $this->when($request->user()?->id === $this->user_id, $this->user_id),
             'title' => $this->title,
             'author' => $this->author,
             'isbn' => $this->isbn,
@@ -34,9 +33,6 @@ class BookShowResource extends JsonResource
             'reviews_avg_rating' => $this->reviews_avg_rating ?? 0,
             'reviews_count' => $this->reviews_count,
             'reviews' => ReviewResource::collection($this->whenLoaded('reviews')),
-            // Policyによる認可
-            'can_update' => $request->user()?->can('update', $this) ?? false,
-            'can_delete' => $request->user()?->can('delete', $this) ?? false,
         ];
     }
 }

@@ -35,7 +35,6 @@ class UpdateBookRequest extends FormRequest
             'image_url' => 'nullable|string|max:255|url',
             'genres' => 'required|array',
             'genres.*' => 'integer|exists:genres,id',
-            'user_id' => 'required|integer|exists:users,id',
         ];
     }
 
@@ -54,7 +53,6 @@ class UpdateBookRequest extends FormRequest
             'description.max' => '説明は255文字以内で入力してください',
             'image_url.url' => '画像URLはURL形式で入力してください',
             'genres.required' => 'ジャンルを1つ以上選択してください',
-            'user_id.required' => 'ユーザーIDを入力してください',
         ];
     }
 }

@@ -2,31 +2,30 @@
 
 namespace App\Notifications;
 
+use App\Enums\ReminderTiming;
 use App\Models\ReadingPlan;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
+/**
+ * 読書計画のリマインダー通知（DatabaseChannelに保存）
+ */
 class ReadingPlanReminder extends Notification
 {
     use Queueable;
 
-    protected string $timing;
-
-    protected ReadingPlan $readingPlan;
-
     /**
-     * Create a new notification instance.
+     * @param  ReadingPlan  $readingPlan  通知対象の読書計画
+     * @param ReminderTiming  $timing  通知タイミング
      */
-    public function __construct(ReadingPlan $readingPlan, string $timing)
-    {
-        $this->readingPlan = $readingPlan;
-        $this->timing = $timing;
+    public function __construct(protected ReadingPlan $readingPlan, protected ReminderTiming $timing){
     }
 
     /**
-     * Get the notification's delivery channels.
+     * 通知の配信チャンネルを返す
      *
-     * @return array<int, string>
+     * @param  object  $notifiable  通知先(Userモデル)
+     * @return array<int, string>  配信チャンネルの配列
      */
     public function via(object $notifiable): array
     {
@@ -34,45 +33,18 @@ class ReadingPlanReminder extends Notification
     }
 
     /**
-     * Get the array representation of the notification.
+     * Notificationsテーブルのdataカラムに保存する内容を返す
      *
-     * @return array<string, mixed>
+     * @param  object  $notifiable  通知先(Userモデル)
+     * @return array<string, mixed>  dataカラムに保存するデータ
      */
     public function toArray(object $notifiable): array
     {
-        $notificationData = match ($this->timing) {
-            'over_due_date' => [
-                'timing' => 'over_due_date',
-                'title' => '期日が過ぎました',
-                'body' => "「{$this->readingPlan->book->title}」の目標期日を超過しました。",
-            ],
-            'before_3_days' => [
-                'timing' => 'three_days_before',
-                'title' => 'まもなく期日です',
-                'body' => "「{$this->readingPlan->book->title}」の目標期日まであと3日です!",
-            ],
-            'today' => [
-                'timing' => 'on_due_date',
-                'title' => '本日が期日です',
-                'body' => "本日は「{$this->readingPlan->book->title}」の目標期日当日です!",
-            ],
-            'after_3_days' => [
-                'timing' => 'three_days_after',
-                'title' => '期日が過ぎています',
-                'body' => "「{$this->readingPlan->book->title}」の目標期日から3日が経過しました。進捗はどうですか？",
-            ],
-            default => [
-                'timing' => 'default',
-                'title' => '読書計画リマインダー',
-                'body' => '読書計画のリマインダーです。',
-            ],
-        };
-
         return [
             'reading_plan_id' => $this->readingPlan->id,
-            'timing' => $notificationData['timing'],
-            'title' => $notificationData['title'],
-            'body' => $notificationData['body'],
+            'timing' => $this->timing->value,
+            'title' => $this->timing->title(),
+            'body' => $this->timing->body($this->readingPlan->book->title),
         ];
     }
 }

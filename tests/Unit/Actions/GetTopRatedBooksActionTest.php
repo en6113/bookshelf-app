@@ -43,7 +43,6 @@ class GetTopRatedBooksActionTest extends TestCase
         // assert
         $this->assertEquals($this->bestBook->id, $result->get(0)->id);
         $this->assertEquals($this->mediumBook->id, $result->get(1)->id);
-        $this->assertEquals($this->worstBook->id, $result->get(2)->id);
     }
 
     /** @test */

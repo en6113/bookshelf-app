@@ -45,7 +45,7 @@ class BookController extends Controller
         $sortEnum = BookSort::tryFrom($request->input('sort')) ?? BookSort::LATEST;
         $query = $sortEnum->apply($query);
 
-        $books = $query->paginate(10);
+        $books = $query->paginate(10)->withQueryString();
 
         return view('books.index', compact('books', 'genres'));
     }
@@ -118,7 +118,7 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request): RedirectResponse
     {
-        $validated = $request->validated();
+        $validated = $request->safe()->except('genres');
         $validated['user_id'] = auth()->id();
 
         DB::transaction(function () use ($validated, $request) {
@@ -148,7 +148,7 @@ class BookController extends Controller
     public function update(UpdateBookRequest $request, Book $book): RedirectResponse
     {
         $this->authorize('update', $book);
-        $validated = $request->validated();
+        $validated = $request->safe()->except('genres');
 
         DB::transaction(function () use ($book, $validated, $request) {
             $book->update($validated);

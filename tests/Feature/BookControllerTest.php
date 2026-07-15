@@ -327,7 +327,6 @@ class BookControllerTest extends TestCase
         $user = User::factory()->create();
         $genre = Genre::factory()->create();
         $data = [
-            'user_id' => $user->id,
             'title' => 'テストタイトル',
             'author' => '著者名',
             'isbn' => '1234567890123',
@@ -444,7 +443,10 @@ class BookControllerTest extends TestCase
     {
         // Arrange
         $user = User::factory()->create();
-        $book = Book::factory()->create(['user_id' => $user->id]);
+        $book = Book::factory()->create([
+            'user_id' => $user->id,
+            'title' => '更新前のタイトル',
+        ]);
         $genre = Genre::factory()->create();
 
         $updateData = array_merge($book->toArray(), [

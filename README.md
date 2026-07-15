@@ -1,7 +1,15 @@
 # Bookshelf 書籍レビューアプリ
 
 書籍レビュー・読書記録の機能を実装したLaravelプロジェクトです。
-誰でも書籍一覧、書籍詳細（レビュー含む）、ランキングの閲覧が可能で、一般ユーザーが書籍やレビューの登録及び読書記録ができます。
+ログイン不要で書籍一覧、書籍詳細（レビュー含む）、ランキングの閲覧が可能で、ログインユーザーは書籍やレビューの登録、コミュニティ機能（お気に入り・いいね）及び読書管理機能が使用できます。
+
+## デモ
+
+### 書籍一覧画面
+![書籍一覧](.github\images\書籍一覧.png)
+
+### マイレポート画面
+![マイレポート](.github\images\マイレポート.png)
 
 ## 作成者
 
@@ -24,22 +32,17 @@ en6113
 ### 🗄️ データベース
 - MySQL 8.0
 
-### 🔌外部API連携
-- Google Books API(ISBN検索)
+### 🔌 外部API連携
+- GoogleBooksAPI(ISBN検索)
 
 ### 🐳 インフラ / 開発環境
 - Docker / Docker Compose
 - Nginx (Webサーバー)
 - phpMyAdmin (データベース管理ツール)
 
-
 ## ER図
 
-![ER図](.github/images/20260702_erd.png)
-
-## 開発環境URL
-
-http://localhost
+![ER図](.github/images/20260715_erd.png)
 
 ## 動作環境
 
@@ -81,11 +84,12 @@ http://localhost
     以下のDockerコマンドを実行して、コンテナ内で `composer install` を実行します。
 
     ```bash
-    docker run --rm 
-    -u "$(id -u):$(id -g)" 
-    -v "$(pwd):/var/www/html" 
-    -w /var/www/html 
-    -e COMPOSER_CACHE_DIR=/tmp/composer_cache laravelsail/php82-composer:latest 
+    docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    -e COMPOSER_CACHE_DIR=/tmp/composer_cache \
+    laravelsail/php82-composer:latest \
     composer install
     ```
 
@@ -97,21 +101,19 @@ http://localhost
     ./vendor/bin/sail up -d
     ```
 
-    > **エイリアスの設定（推奨）**
-    >
-    > 毎回 `./vendor/bin/sail` と入力するのは手間なので、エイリアスを設定すると便利です。
-    >
-    > ```bash
-    > alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
-    > ```
+5. **エイリアスの設定**
 
-5. **アプリケーションキーの生成**
+    ```bash
+    alias sail='[ -f sail ] && bash sail || bash vendor/bin/sail'
+    ```
+
+6. **アプリケーションキーの生成**
 
     ```bash
     sail artisan key:generate
     ```
 
-6. **データベースのマイグレーションと初期データ投入**
+7. **データベースのマイグレーションと初期データ投入**
 
     以下のコマンドでテーブルを作成し、ダミーデータを投入します。
 
@@ -120,73 +122,65 @@ http://localhost
     ```
     このコマンドの入力後、コンテナ内にデータが残っており、エラーが生じているケースなどがあります。
     その場合は、以下のコマンドを順に実行して各コンテナを再起動して下さい。
-    ```Bash
+    コマンド実行後にSQLコンテナが立ち上がるまで時間がかかります。30秒ほどお待ちください。
+    ```bash
     sail down -v
-    sail up -d　//コマンド実行後にSQLコンテナが立ち上がるまで時間がかかります。30秒ほどお待ちください。
+    sail up -d
     sail artisan migrate:fresh --seed
     ```
-    
 
-7. **フロントエンドの準備**
+8. **フロントエンドの準備**
 
     ```bash
     sail npm install
-    sail npm install alpinejs
     sail npm run dev
     ```
 
     `npm run dev` は開発中は起動したままにしてください。
 
-8. **アプリケーションへのアクセス**
+9. **アプリケーションへのアクセス**
 
     ブラウザで [http://localhost](http://localhost) にアクセスします。
 
-## テスト実行
+## 開発環境URL
 
-```bash
-sail artisan test
-```
-
-カバレッジ付きで実行する場合:
-
-```bash
-sail artisan test --coverage
-```
+http://localhost
 
 ## 機能一覧
 
-### 👤一般ユーザー向け機能
-* **アカウント管理**
-- ユーザー登録 / ログイン / ログアウト(Laravel Fortify)
-* **書籍閲覧・検索（ログイン不要）**
+### 👤 一般ユーザー向け機能
+#### 書籍閲覧・検索機能（ログイン不要）
 - 書籍一覧表示（キーワード検索・ジャンル検索・並び順変更）
 - 書籍詳細表示（レビュー付）
 - ランキング表示（レビュー高評価順）
+#### アカウント機能
+- ユーザー登録 / ログイン / ログアウト(Laravel Fortify)
+#### 書籍登録機能
 - 書籍登録（手動登録、GoogleBooksAPI経由の自動取得）/ 編集 / 削除
-* **ジャンル管理**
+#### ジャンル管理機能
 - ジャンル一覧表示 / 新規追加 / 更新 / 削除
-* **コミュニティ機能**
-- レビューの投稿（投稿・編集・削除）
-- レビューへの「いいね」機能（登録・解除）
-* **マイページ（読書管理）**
-- お気に入り表示（一覧表示・登録・解除）
+#### 読書管理機能
+- 書籍への「お気に入り」機能（登録・解除）/ お気に入り一覧表示
 - マイレポート表示（レビュー数、読了冊数、平均評価、評価分布、高評価書籍、ジャンル別評価傾向）
-- 読書計画表示（一覧表示・作成・編集・削除・通知機能）
+- 読書計画一覧表示 / 作成 / 編集 / 削除 / 通知
+#### コミュニティ機能
+- レビューの投稿 / 編集 / 削除
+- レビューへの「いいね」機能（登録・解除）
 
-### 🔌外部公開用API（外部アプリケーション向け）
-* **書籍データ連携API(LaravelSanctum認証必須)**
+### 🔌 外部公開用API（外部アプリケーション向け）
+#### 書籍データ連携API
 - 書籍一覧取得(GET) / 書籍詳細取得(GET)
-- 書籍登録(POST) / 書籍更新(PUT) / 書籍削除(DELETE)
-
+- 書籍登録(POST) / 書籍更新(PUT) / 書籍削除(DELETE)(書き込み系はSanctum認証必須)
 
 ## APIエンドポイント一覧
 
-認証不要の公開APIです。全エンドポイントは `/api/v1` プレフィックス配下に定義されています。
+※認証系エンドポイントはバージョン非依存のため、意図的に`/v1`の外に配置しています。
 
-| HTTPメソッド | URI | 概要 |
+| HTTPメソッド | URI | 概要 | 認証 |
 |---|---|---|
-| GET | /api/v1/books | 書籍一覧（検索・ページネーション付き） |
-| GET | /api/v1/books/{book} | 書籍詳細（ジャンル含む） |
-| POST | /api/v1/books | 書籍新規登録 |
-| PUT | /api/v1/books/{book} | 書籍更新 |
-| DELETE | /api/v1/books/{book} | 書籍削除 |
+| GET | /api/v1/books | 書籍一覧（検索・ページネーション付き） | 不要 |
+| GET | /api/v1/books/{book} | 書籍詳細（ジャンル含む） | 不要 |
+| POST | /api/login | Sanctum APIトークン認証発行 | 不要 |
+| POST | /api/v1/books | 書籍新規登録 | Sanctum |
+| PUT | /api/v1/books/{book} | 書籍更新 | Sanctum |
+| DELETE | /api/v1/books/{book} | 書籍削除 | Sanctum |

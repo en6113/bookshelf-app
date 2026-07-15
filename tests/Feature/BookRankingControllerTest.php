@@ -15,7 +15,7 @@ class BookRankingControllerTest extends TestCase
     public function ランキング一覧画面を表示でき、アクションから取得した書籍データがビューに渡される(): void
     {
         // Arrange
-        $books = Book::factory()->count(3)->create();
+        $books = Book::factory()->count(3)->has(Review::factory())->create();
 
         // Act
         $response = $this->get(route('ranking.index'));

@@ -37,7 +37,7 @@ class IndexBookRequest extends FormRequest
         return [
             'keyword.max' => 'キーワードは255文字以内で入力してください',
             'genre.exists' => '指定されたジャンルIDは存在しません',
-            'sort'.Enum::class => '指定された並び順から選択してください',
+            'sort.'.Enum::class => '指定された並び順から選択してください',
         ];
     }
 }

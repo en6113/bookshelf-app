@@ -6,6 +6,7 @@ use App\Enums\ReadingPlanStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class IndexReadingPlanRequest extends FormRequest
 {
@@ -32,7 +33,7 @@ class IndexReadingPlanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status'. Enum::class => '選択肢から選択してください',
+            'status.'. Enum::class => '選択肢から選択してください',
         ];
     }
 }

@@ -85,7 +85,6 @@ class UpdateBookRequestTest extends TestCase
     public static function requiredFieldProvider(): array
     {
         return [
-            'user_idが空の時' => [['user_id' => ''], 'user_id'],
             'titleが空の時' => [['title' => ''], 'title'],
             'authorが空の時' => [['author' => ''], 'author'],
             'genresが空の時' => [['genres' => []], 'genres'],

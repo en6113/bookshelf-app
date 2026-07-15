@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\BookSort;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 
 class IndexBookRequest extends FormRequest
@@ -27,7 +28,7 @@ class IndexBookRequest extends FormRequest
         return [
             'keyword' => ['nullable', 'string', 'max:255'],
             'genre' => ['nullable', 'integer', 'exists:genres,id'],
-            'sort' => ['nullable', 'string', new Enum(BookSort::class)],
+            'sort' => ['nullable', 'string', Rule::enum(BookSort::class)],
         ];
     }
 
@@ -36,7 +37,7 @@ class IndexBookRequest extends FormRequest
         return [
             'keyword.max' => 'キーワードは255文字以内で入力してください',
             'genre.exists' => '指定されたジャンルIDは存在しません',
-            'sort.enum_value' => '指定された並び順から選択してください',
+            'sort'.Enum::class => '指定された並び順から選択してください',
         ];
     }
 }

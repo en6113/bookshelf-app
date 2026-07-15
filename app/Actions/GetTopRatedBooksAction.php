@@ -10,7 +10,7 @@ class GetTopRatedBooksAction
     /**
      * 平均評価が高い本を取得するアクション(レビューのない書籍は除外)
      *
-     * @param int $limit 取得する最大件数
+     * @param  int  $limit  取得する最大件数
      * @return Collection<int, Book> 平均評価の降順で並んだ書籍コレクション
      */
     public function execute(int $limit = 10): Collection

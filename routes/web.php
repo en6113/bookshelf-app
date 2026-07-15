@@ -21,7 +21,7 @@ Route::middleware('auth')->group(function () {
     // レビュー関係
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
     Route::resource('/reviews', ReviewController::class)->only('edit', 'update', 'destroy');
-    Route::post('/review/{review}/like', [ReviewController::class, 'toggle'])->name('reviews.like');
+    Route::post('/reviews/{review}/like', [ReviewController::class, 'toggle'])->name('reviews.like');
 
     // お気に入り関係
     Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');

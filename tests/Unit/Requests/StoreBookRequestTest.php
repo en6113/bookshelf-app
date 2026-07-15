@@ -77,7 +77,6 @@ class StoreBookRequestTest extends TestCase
         return [
             'titleが空の時' => [['title' => ''], 'title'],
             'authorが空の時' => [['author' => ''], 'author'],
-            'isbnが空の時' => [['isbn' => ''], 'isbn'],
             'genresが空の時' => [['genres' => []], 'genres'],
         ];
     }

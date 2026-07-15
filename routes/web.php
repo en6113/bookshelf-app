@@ -10,9 +10,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-});
+Route::redirect('/', '/books');
 
 // ユーザーのみアクセス可能なページ
 Route::middleware('auth')->group(function () {

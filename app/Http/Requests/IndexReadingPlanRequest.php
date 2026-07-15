@@ -32,7 +32,7 @@ class IndexReadingPlanRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'status'.Enum::class => '選択肢から選択してください',
+            'status'. Enum::class => '選択肢から選択してください',
         ];
     }
 }

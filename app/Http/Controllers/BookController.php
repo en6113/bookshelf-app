@@ -45,7 +45,7 @@ class BookController extends Controller
         $sortEnum = BookSort::tryFrom($request->input('sort')) ?? BookSort::LATEST;
         $query = $sortEnum->apply($query);
 
-        $books = $query->paginate(10);
+        $books = $query->paginate(10)->withQueryString();
 
         return view('books.index', compact('books', 'genres'));
     }

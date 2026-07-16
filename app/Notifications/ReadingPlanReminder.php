@@ -16,16 +16,15 @@ class ReadingPlanReminder extends Notification
 
     /**
      * @param  ReadingPlan  $readingPlan  通知対象の読書計画
-     * @param ReminderTiming  $timing  通知タイミング
+     * @param  ReminderTiming  $timing  通知タイミング
      */
-    public function __construct(protected ReadingPlan $readingPlan, protected ReminderTiming $timing){
-    }
+    public function __construct(protected ReadingPlan $readingPlan, protected ReminderTiming $timing) {}
 
     /**
      * 通知の配信チャンネルを返す
      *
      * @param  object  $notifiable  通知先(Userモデル)
-     * @return array<int, string>  配信チャンネルの配列
+     * @return array<int, string> 配信チャンネルの配列
      */
     public function via(object $notifiable): array
     {
@@ -36,7 +35,7 @@ class ReadingPlanReminder extends Notification
      * Notificationsテーブルのdataカラムに保存する内容を返す
      *
      * @param  object  $notifiable  通知先(Userモデル)
-     * @return array<string, mixed>  dataカラムに保存するデータ
+     * @return array<string, mixed> dataカラムに保存するデータ
      */
     public function toArray(object $notifiable): array
     {

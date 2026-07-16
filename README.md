@@ -30,7 +30,7 @@ en6113
 - Vite（ビルドツール）
 
 ### 🗄️ データベース
-- MySQL 8.0
+- MySQL 8.4
 
 ### 🔌 外部API連携
 - GoogleBooksAPI(ISBN検索)

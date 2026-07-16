@@ -74,7 +74,7 @@ class SendReadingPlanReminders extends Command
             ->each(function (ReadingPlan $plan) use ($timing, $isOverdue) {
                 $plan->user->notify(new ReadingPlanReminder($plan, $timing));
 
-                //期日経過時は`overdue_notified_at`に通知した記録を残す
+                // 期日経過時は`overdue_notified_at`に通知した記録を残す
                 if ($isOverdue) {
                     $plan->update(['overdue_notified_at' => now()]);
                 }

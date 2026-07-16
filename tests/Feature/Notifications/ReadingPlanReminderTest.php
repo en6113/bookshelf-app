@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Enums\ReminderTiming;
 use App\Models\Book;
 use App\Models\ReadingPlan;
 use App\Notifications\ReadingPlanReminder;
-use App\Enums\ReminderTiming;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

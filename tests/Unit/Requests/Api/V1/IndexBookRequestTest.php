@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Api\V1;
+namespace Tests\Unit\Requests\Api\V1;
 
 use App\Http\Requests\Api\V1\IndexBookRequest;
 use App\Models\Genre;

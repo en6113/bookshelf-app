@@ -15,8 +15,10 @@ Route::redirect('/', '/books');
 // ユーザーのみアクセス可能なページ
 Route::middleware('auth')->group(function () {
     // 書籍関係
+    Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn'])
+        ->whereNumber('isbn')
+        ->name('books.isbn');
     Route::resource('/books', BookController::class)->except('index', 'show');
-    Route::get('/books/isbn/{isbn}', [BookController::class, 'searchByIsbn']);
 
     // レビュー関係
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');

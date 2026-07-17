@@ -8,6 +8,7 @@ use App\Http\Requests\StoreBookRequest;
 use App\Http\Requests\UpdateBookRequest;
 use App\Models\Book;
 use App\Models\Genre;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,10 @@ use Illuminate\View\View;
 class BookController extends Controller
 {
     /**
-     * 書籍一覧表示
+     * 書籍一覧表示(キーワード・ジャンル・並び順の検索対応)
+     *
+     * @param  IndexBookRequest  $request  検索条件のバリデーション済リクエスト
+     * @return View 書籍一覧画面
      */
     public function index(IndexBookRequest $request): View
     {
@@ -51,22 +55,25 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍詳細表示
+     * 書籍詳細表示（ジャンル・レビュー・いいね数付き）
+     *
+     * @param  Book  $book  表示対象の書籍
+     * @return View 書籍詳細画面
      */
     public function show(Book $book): View
     {
         $book->load([
             'genres',
-            'reviews' => function ($query) {
-                $query->withCount('likedByUsers');
-            },
+            'reviews' => fn ($query) => $query->with('user')->withCount('likedByUsers'),
         ]);
 
         return view('books.show', compact('book'));
     }
 
     /**
-     * 書籍登録画面表示
+     * 書籍登録画面を表示する
+     *
+     * @return View 書籍登録画面
      */
     public function create(): View
     {
@@ -77,7 +84,10 @@ class BookController extends Controller
     }
 
     /**
-     * ISBN検索
+     * GoogleBooksAPIでISBN検索し、書籍情報をJSONで返す
+     *
+     * @param  string  $isbn  13桁のISBNコード
+     * @return JsonResponse 書籍情報（title/author/published_date/description/image_url）またはエラー
      */
     public function searchByIsbn(string $isbn): JsonResponse
     {
@@ -86,80 +96,93 @@ class BookController extends Controller
             return response()->json(['error' => 'ISBNは13桁で入力してください。'], 422);
         }
 
-        $key = config('services.google.books_api_key');
-
-        // Google Books APIへリクエスト送信
-        $url = 'https://www.googleapis.com/books/v1/volumes?q=isbn:'.$isbn.'&key='.$key;
-        $response = Http::get($url);
-
-        if ($response->successful()) {
-            $data = $response->json();
-
-            if (isset($data['items']) && count($data['items']) > 0) {
-                $volumeInfo = $data['items'][0]['volumeInfo'];
-
-                $book = [
-                    'title' => $volumeInfo['title'] ?? 'タイトル不明',
-                    'author' => isset($volumeInfo['authors']) ? implode(', ', $volumeInfo['authors']) : '著者不明',
-                    'published_date' => $volumeInfo['publishedDate'] ?? null,
-                    'description' => $volumeInfo['description'] ?? null,
-                    'image_url' => $volumeInfo['imageLinks']['thumbnail'] ?? null,
-                ];
-
-                return response()->json($book);
-            }
+        try {
+            $response = Http::timeout(5)->get('https://www.googleapis.com/books/v1/volumes', [
+                'q' => 'isbn:'.$isbn,
+                'key' => config('services.google.books_api_key'),
+            ]);
+        } catch (ConnectionException) {
+            return response()->json(['error' => '書籍情報の取得に失敗しました。時間をおいて再度お試しください'], 503);
         }
 
-        return response()->json(['error' => '該当する書籍が見つかりませんでした。'], 404);
+        $volumeInfo = $response->successful() ? $response->json('items.0.volumeInfo') : null;
+
+        if ($volumeInfo === null) {
+            return response()->json(['error' => '該当する書籍が見つかりませんでした'], 404);
+        }
+
+        return response()->json([
+            'title' => $volumeInfo['title'] ?? 'タイトル不明',
+            'author' => isset($volumeInfo['authors']) ? implode(', ', $volumeInfo['authors']) : '著者不明',
+            'published_date' => $volumeInfo['publishedDate'] ?? null,
+            'description' => $volumeInfo['description'] ?? null,
+            'image_url' => $volumeInfo['imageLinks']['thumbnail'] ?? null,
+        ]);
     }
 
     /**
-     * 書籍保存
+     * 書籍を登録し、ジャンルを紐づける（トランザクションで原子化）
+     *
+     * @param  StoreBookRequest  $request  バリデーション済みリクエスト
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function store(StoreBookRequest $request): RedirectResponse
     {
+        $genres = $request->input('genres', []);
         $validated = $request->safe()->except('genres');
         $validated['user_id'] = auth()->id();
 
-        DB::transaction(function () use ($validated, $request) {
+        DB::transaction(function () use ($validated, $genres) {
             $book = Book::create($validated);
-            $book->genres()->attach($request->genres);
+            $book->genres()->attach($genres);
         });
 
         return redirect()->route('books.index')->with('success', '書籍を登録しました');
     }
 
     /**
-     * 書籍編集画面表示
+     * 書籍編集画面を表示する（作成者のみ）
+     *
+     * @param  Book  $book  編集対象の書籍
+     * @return View 書籍編集画面
      */
     public function edit(Book $book): View
     {
-        $genres = Genre::all();
-
         $this->authorize('update', $book);
+
+        $genres = Genre::all();
         $book->load('genres');
 
         return view('books.edit', compact('book', 'genres'));
     }
 
     /**
-     * 書籍更新
+     * 書籍を更新し、ジャンルを同期する（作成者のみ、トランザクションで原子化）
+     *
+     * @param  UpdateBookRequest  $request  バリデーション済みのリクエスト
+     * @param  Book  $book  更新対象の書籍
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function update(UpdateBookRequest $request, Book $book): RedirectResponse
     {
         $this->authorize('update', $book);
+
+        $genres = $request->input('genres', []);
         $validated = $request->safe()->except('genres');
 
-        DB::transaction(function () use ($book, $validated, $request) {
+        DB::transaction(function () use ($book, $validated, $genres) {
             $book->update($validated);
-            $book->genres()->sync($request->genres ?? []);
+            $book->genres()->sync($genres);
         });
 
         return redirect()->route('books.index')->with('success', '書籍を更新しました');
     }
 
     /**
-     * 書籍削除
+     * 書籍を削除する（作成者のみ、関連レコードはCascadeで削除）
+     *
+     * @param  Book  $book  削除対象の書籍
+     * @return RedirectResponse 書籍一覧画面へのリダイレクト
      */
     public function destroy(Book $book): RedirectResponse
     {

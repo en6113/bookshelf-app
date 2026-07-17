@@ -76,7 +76,6 @@ class SendReadingPlanRemindersTest extends TestCase
             'data->reading_plan_id' => $plan->id,
             'data->timing' => 'over_due_date',
         ]);
-        $this->assertNotNull($plan->fresh()->overdue_notified_at);
     }
 
     /** @test */

@@ -6,6 +6,7 @@ enum ReadingPlanStatus: string
 {
     case InProgress = 'in_progress';
     case Completed = 'completed';
+    case Expired = 'expired';
 
     /**
      * 各ステータスの日本語ラベル
@@ -14,7 +15,8 @@ enum ReadingPlanStatus: string
     {
         return match ($this) {
             self::InProgress => '進行中',
-            self::Completed => '読了',
+            self::Completed => '完了',
+            self::Expired => '期限切れ',
         };
     }
 
@@ -26,6 +28,7 @@ enum ReadingPlanStatus: string
         return match ($this) {
             self::InProgress => 'bg-blue-100 text-blue-800',
             self::Completed => 'bg-yellow-100 text-yellow-800',
+            self::Expired => 'bg-red-100 text-red-800',
         };
     }
 }

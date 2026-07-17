@@ -64,13 +64,17 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * 読書計画の更新
+     * 読書計画の更新(過去日への期日変更はバリデーションで弾く)
      */
     public function update(ReadingPlanRequest $request, ReadingPlan $readingPlan): RedirectResponse
     {
         $this->authorize('update', $readingPlan);
 
         $validated = $request->validated();
+
+        if ($readingPlan->status === ReadingPlanStatus::Expired) {
+            $validated['status'] = ReadingPlanStatus::InProgress;
+        }
 
         $readingPlan->update($validated);
 

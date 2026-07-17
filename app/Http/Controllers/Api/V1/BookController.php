@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 class BookController extends Controller
 {
     /**
-     * 書籍一覧を取得
+     * 書籍一覧をJSONで取得する（検索・絞り込み・ページネーション対応）
      */
     public function index(IndexBookRequest $request): AnonymousResourceCollection
     {
@@ -53,11 +53,11 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍詳細を取得
+     * 書籍詳細をJSONで取得する
      */
     public function show(Book $book): BookShowResource
     {
-        $book->load(['genres', 'reviews']);
+        $book->load(['genres', 'reviews.user']);
         $book->loadCount('reviews');
         $book->loadAvg('reviews', 'rating');
 
@@ -65,17 +65,16 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍を新規登録
+     * 書籍を新規登録し、ジャンルを紐づける（トランザクションで原子化）
      */
     public function store(StoreBookRequest $request): BookShowResource
     {
-        $validated = $request->validated();
-        $genres = $validated['genres'];
-        unset($validated['genres']);
+        $validated = $request->safe()->except('genres');
+        $genres = $request->validated('genres');
 
-        return DB::transaction(function () use ($request, $validated, $genres) {
-            $book = $request->user()->books()->create($validated);
-            $book->genres()->attach($genres);
+        return DB::transaction(function () use ($validated, $genres) {
+            $book = Book::create($validated);
+            $book->genres()->attach($genres ?? []);
             $book->load(['genres']);
 
             return new BookShowResource($book);
@@ -83,19 +82,18 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍を更新
+     * 書籍を更新し、ジャンルを同期する（トランザクションで原子化）
      */
     public function update(UpdateBookRequest $request, Book $book): BookShowResource
     {
         $this->authorize('update', $book);
-        $validated = $request->validated();
+
+        $validated = $request->safe()->except('genres');
         $genres = $validated['genres'];
-        unset($validated['genres']);
 
         return DB::transaction(function () use ($book, $validated, $genres) {
             $book->update($validated);
             $book->genres()->sync($genres ?? []);
-
             $book->load('genres');
 
             return new BookShowResource($book);
@@ -103,7 +101,7 @@ class BookController extends Controller
     }
 
     /**
-     * 書籍を削除
+     * 書籍を削除する（関連レコードはCascadeで削除、204を返す）
      */
     public function destroy(Book $book): JsonResponse
     {

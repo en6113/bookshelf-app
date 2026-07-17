@@ -313,7 +313,7 @@ class BookControllerTest extends TestCase
 
         // Assert
         $response->assertStatus(404);
-        $response->assertJson(['error' => '該当する書籍が見つかりませんでした。']);
+        $response->assertJson(['error' => '該当する書籍が見つかりませんでした']);
     }
 
     // =========================================================================

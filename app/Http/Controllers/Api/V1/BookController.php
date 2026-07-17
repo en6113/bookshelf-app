@@ -69,8 +69,9 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request): BookShowResource
     {
+        $genres = $request->input('genres', []);
         $validated = $request->safe()->except('genres');
-        $genres = $request->validated('genres');
+        $validated['user_id'] = $request->user()->id;
 
         return DB::transaction(function () use ($validated, $genres) {
             $book = Book::create($validated);
@@ -88,8 +89,9 @@ class BookController extends Controller
     {
         $this->authorize('update', $book);
 
+        $genres = $request->input('genres', []);
         $validated = $request->safe()->except('genres');
-        $genres = $validated['genres'];
+        $validated['user_id'] = $request->user()->id;
 
         return DB::transaction(function () use ($book, $validated, $genres) {
             $book->update($validated);

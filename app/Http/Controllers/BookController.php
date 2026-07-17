@@ -128,8 +128,8 @@ class BookController extends Controller
      */
     public function store(StoreBookRequest $request): RedirectResponse
     {
+        $genres = $request->input('genres', []);
         $validated = $request->safe()->except('genres');
-        $genres = $request->validated('genres');
         $validated['user_id'] = auth()->id();
 
         DB::transaction(function () use ($validated, $genres) {
@@ -166,8 +166,9 @@ class BookController extends Controller
     public function update(UpdateBookRequest $request, Book $book): RedirectResponse
     {
         $this->authorize('update', $book);
+
+        $genres = $request->input('genres', []);
         $validated = $request->safe()->except('genres');
-        $genres = $request->validated('genres');
 
         DB::transaction(function () use ($book, $validated, $genres) {
             $book->update($validated);

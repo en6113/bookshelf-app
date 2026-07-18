@@ -8,12 +8,13 @@ use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 class Kernel extends ConsoleKernel
 {
     /**
-     * Define the application's command schedule.
+     * 通知とステータス変更をスケジュールする処理
+     * ステータスが通知の判断基準になっているため、sendをexpiredより先に実行すること（順番を変えないこと）
      */
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('notifications:send')->dailyAt('20:00');
-        $schedule->command('notifications:prune')->daily();
+        $schedule->command('reading-plans:expired')->dailyAt('20:00');
     }
 
     /**

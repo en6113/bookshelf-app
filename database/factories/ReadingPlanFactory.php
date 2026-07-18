@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\ReadingPlanStatus;
 use App\Models\Book;
 use App\Models\ReadingPlan;
 use App\Models\User;
@@ -23,7 +24,7 @@ class ReadingPlanFactory extends Factory
             'user_id' => User::factory(),
             'book_id' => Book::factory(),
             'target_date' => fake()->dateTimeBetween('now', '+1month'),
-            'status' => 'in_progress',
+            'status' => ReadingPlanStatus::InProgress,
         ];
     }
 }

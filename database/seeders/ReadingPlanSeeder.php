@@ -33,7 +33,6 @@ class ReadingPlanSeeder extends Seeder
                 'book_id' => $userBookIds[2],
                 'target_date' => $today->copy()->subDay(),
                 'status' => ReadingPlanStatus::InProgress,
-                'overdue_notified_at' => null,
             ]);
 
             // 期日が3日後（3日前予告の通知対象)
@@ -58,7 +57,6 @@ class ReadingPlanSeeder extends Seeder
                 'book_id' => $userBookIds[3],
                 'target_date' => $today->copy()->subDays(3),
                 'status' => ReadingPlanStatus::InProgress,
-                'overdue_notified_at' => $today->copy()->subDays(2),
             ]);
         }
 
@@ -67,7 +65,7 @@ class ReadingPlanSeeder extends Seeder
 
         if ($targetUser) {
             $usedBookIds = ReadingPlan::where('user_id', $targetUser->id)->pluck('book_id');
-            $targetUserBookIds = $bookIds->diff($usedBookIds)->random(5)->values();
+            $targetUserBookIds = $bookIds->diff($usedBookIds)->random(4)->values();
 
             $addPlans = [
                 // 期日が3日後（読了の計画には3日前予告通知が送られないことの確認用)
@@ -94,59 +92,18 @@ class ReadingPlanSeeder extends Seeder
                     'completed_at' => $today->copy()->subDay(3),
                     'status' => ReadingPlanStatus::Completed,
                 ],
+                // 期日が2日前で期限切れ（期限切れ通知が重ねて送られないことの確認用）
+                [
+                    'user_id' => $targetUser->id,
+                    'book_id' => $targetUserBookIds[3],
+                    'target_date' => $today->copy()->subDays(2),
+                    'status' => ReadingPlanStatus::Expired,
+                ],
             ];
 
             foreach ($addPlans as $plan) {
                 ReadingPlan::factory()->create($plan);
             }
-
-            // 自動失効バッチの確認用（保持期間30日超え）
-            $expiredPlan = ReadingPlan::factory()->create([
-                'user_id' => $targetUser->id,
-                'book_id' => $targetUserBookIds[3],
-                'target_date' => $today->copy()->subDays(32),
-                'status' => ReadingPlanStatus::InProgress,
-                'overdue_notified_at' => $today->copy()->subDays(31),
-            ]);
-
-            DB::table('notifications')->insert([
-                'id' => (string) Str::uuid(),
-                'type' => ReadingPlanReminder::class,
-                'notifiable_type' => User::class,
-                'notifiable_id' => $targetUser->id,
-                'data' => json_encode([
-                    'reading_plan_id' => $expiredPlan->id,
-                    'title' => '期日が過ぎています',
-                    'body' => "「{$expiredPlan->book->title}」の期日を超過しました。(初期投入データ、保持期間30日超え、自動失効バッチで消える)",
-                ]),
-                'read_at' => null,
-                'created_at' => $today->copy()->subDays(31),
-                'updated_at' => $today->copy()->subDays(31),
-            ]);
-
-            // 自動失効バッチが送られないことの確認用（保持期間29日）
-            $notExpiredPlan = ReadingPlan::factory()->create([
-                'user_id' => $targetUser->id,
-                'book_id' => $targetUserBookIds[4],
-                'target_date' => $today->copy()->subDays(30),
-                'status' => 'in_progress',
-                'overdue_notified_at' => $today->copy()->subDays(29),
-            ]);
-
-            DB::table('notifications')->insert([
-                'id' => (string) Str::uuid(),
-                'type' => ReadingPlanReminder::class,
-                'notifiable_type' => User::class,
-                'notifiable_id' => $targetUser->id,
-                'data' => json_encode([
-                    'reading_plan_id' => $notExpiredPlan->id,
-                    'title' => '期日が過ぎています',
-                    'body' => "「{$notExpiredPlan->book->title}」の期日を超過しました。(初期投入データ、保持期間29日、自動失効バッチで消えない)",
-                ]),
-                'read_at' => null,
-                'created_at' => $today->copy()->subDays(29),
-                'updated_at' => $today->copy()->subDays(29),
-            ]);
         }
     }
 }

@@ -22,7 +22,8 @@ class DatabaseSeeder extends Seeder
             ReadingPlanSeeder::class,
         ]);
 
+        //　ステータスが通知の判断基準になっているため、sendをexpiredより先に実行すること（順番を変えないこと）
         Artisan::call('notifications:send');
-        Artisan::call('notifications:prune');
+        Artisan::call('reading-plans:expired');
     }
 }

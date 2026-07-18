@@ -62,22 +62,17 @@ class SendReadingPlanReminders extends Command
 
         return ReadingPlan::query()
             ->with(['user', 'book'])
-            ->where('status', ReadingPlanStatus::InProgress)
+            ->whereNot('status', ReadingPlanStatus::Completed)
             ->when(
                 $isOverdue,
-                // 期日経過時：期日が今日より前で、まだ通知していないものを抽出
-                fn ($query) => $query->whereDate('target_date', '<', $targetDate)->whereNull('overdue_notified_at'),
+                // 期日経過時：期日が今日より前で、ステータスが進行中のものを抽出
+                fn ($query) => $query->whereDate('target_date', '<', $targetDate)->where('status', ReadingPlanStatus::InProgress),
                 // それ以外：期日がちょうどその日のものを抽出
                 fn ($query) => $query->whereDate('target_date', $targetDate),
             )
             ->get()
             ->each(function (ReadingPlan $plan) use ($timing, $isOverdue) {
                 $plan->user->notify(new ReadingPlanReminder($plan, $timing));
-
-                // 期日経過時は`overdue_notified_at`に通知した記録を残す
-                if ($isOverdue) {
-                    $plan->update(['overdue_notified_at' => now()]);
-                }
             })
             ->count();
     }

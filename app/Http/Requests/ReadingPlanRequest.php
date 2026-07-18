@@ -39,7 +39,7 @@ class ReadingPlanRequest extends FormRequest
             'book_id.required' => '書籍を選択してください',
             'target_date.required' => '期日を入力してください',
             'target_date.date' => '期日は年月日の形式で入力してください',
-            'target_date.after_or_equal:today' => '期日は今日以降の日付を指定してください',
+            'target_date.after_or_equal' => '期日は今日以降の日付を指定してください',
         ];
     }
 }

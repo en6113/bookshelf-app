@@ -94,7 +94,7 @@ class ReadingPlanController extends Controller
     }
 
     /**
-     * 読書計画の読了
+     * 読書計画の完了
      */
     public function complete(ReadingPlan $readingPlan): RedirectResponse
     {
@@ -105,6 +105,6 @@ class ReadingPlanController extends Controller
             'completed_at' => now(),
         ]);
 
-        return redirect()->route('reading-plans.index')->with('success', 'ステータスを読了に変更しました');
+        return redirect()->route('reading-plans.index')->with('success', 'ステータスを完了に変更しました');
     }
 }

@@ -83,4 +83,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(ReadingPlan::class);
     }
+
+    /**
+     * 独自の通知モデルを使うように上書き
+     */
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable')->latest();
+    }
 }

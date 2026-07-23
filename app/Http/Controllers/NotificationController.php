@@ -23,6 +23,7 @@ class NotificationController extends Controller
     public function read(string $id): RedirectResponse
     {
         $notification = auth()->user()->notifications()->findOrFail($id);
+        $this->authorize('read', $notification);
 
         $notification->markAsRead();
 

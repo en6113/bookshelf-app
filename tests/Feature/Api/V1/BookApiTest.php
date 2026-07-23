@@ -262,7 +262,7 @@ class BookApiTest extends TestCase
     // =========================================================================
 
     /** @test */
-    public function 書籍を登録するとレコードが作成され201が返る(): void
+    public function 認証済みユーザーが書籍を登録するとレコードが作成され201が返る(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -322,7 +322,7 @@ class BookApiTest extends TestCase
     }
 
     /** @test */
-    public function トランザクション途中でエラーが発生した際、すべてロールバックされる(): void
+    public function トランザクション途中でエラーが発生した場合はすべてロールバックされる(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -388,26 +388,46 @@ class BookApiTest extends TestCase
         $this->assertDatabaseHas('books', ['isbn' => '1234567890987']);
     }
 
+    /** @test */
+    public function 正しい_ap_iトークンを付けずに書籍登録リクエストした場合は401が返る(): void
+    {
+        // Arrange
+        $genres = Genre::factory()->count(2)->create();
+        $validData = [
+            'title' => 'テストタイトル',
+            'author' => '著者名',
+            'isbn' => '1234567890123',
+            'published_date' => '2026/05/30',
+            'genres' => $genres->pluck('id')->toArray(),
+        ];
+
+        // Act
+        $response = $this->withHeader('Authorization', 'Bearer invalid_token_string')->postJson('/api/v1/books', $validData);
+
+        // Assert
+        $response->assertStatus(401);
+    }
+
     // =========================================================================
     // 書籍更新API (PUT /api/v1/books/{book})
     // =========================================================================
 
     /** @test */
-    public function 書籍の作成者本人は自身が作成した書籍を更新でき、レコードが更新され200が返る(): void
+    public function 書籍の作成者本人は自身が作成した書籍を更新でき、200が返る(): void
     {
         // Arrange
         $user = User::factory()->create();
-        $myBook = Book::factory()->create(['user_id' => $user->id]);
+        $book = Book::factory()->create(['user_id' => $user->id]);
         $newGenre = Genre::factory()->create(['name' => '更新後のジャンル名']);
 
-        $updateData = array_merge($myBook->toArray(), [
+        $updateData = array_merge($book->toArray(), [
             'title' => '更新後のタイトル',
             'genres' => [$newGenre->id],
         ]);
 
         // Act
         Sanctum::actingAs($user);
-        $response = $this->putJson('/api/v1/books/'.$myBook->id, $updateData);
+        $response = $this->putJson('/api/v1/books/'.$book->id, $updateData);
 
         // Assert
         $response->assertOk();
@@ -415,17 +435,17 @@ class BookApiTest extends TestCase
         $response->assertJsonCount(1, 'data.genres');
         $response->assertJsonPath('data.genres.0.name', '更新後のジャンル名');
         $this->assertDatabaseHas('books', [
-            'id' => $myBook->id,
+            'id' => $book->id,
             'title' => '更新後のタイトル',
         ]);
         $this->assertDatabaseHas('book_genre', [
-            'book_id' => $myBook->id,
+            'book_id' => $book->id,
             'genre_id' => $newGenre->id,
         ]);
     }
 
     /** @test */
-    public function 他人が作成した書籍を更新しようとした場合、403が返り、更新できない(): void
+    public function 他人が作成した書籍を更新しようとすると403が返る(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -478,6 +498,24 @@ class BookApiTest extends TestCase
         $response->assertStatus(404);
     }
 
+    /** @test */
+    public function 正しい_ap_iトークンを付けずに書籍更新リクエストした場合は401が返る(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $book = Book::factory()->create(['user_id' => $user->id]);
+
+        $updateData = array_merge($book->toArray(), [
+            'title' => '更新後のタイトル',
+        ]);
+
+        // Act
+        $response = $this->withHeader('Authorization', 'Bearer invalid_token_string')->putJson('/api/v1/books/'.$book->id, $updateData);
+
+        // Assert
+        $response->assertStatus(401);
+    }
+
     // =========================================================================
     // 書籍削除API (DELETE /api/v1/books/{book})
     // =========================================================================
@@ -505,7 +543,7 @@ class BookApiTest extends TestCase
     }
 
     /** @test */
-    public function 他人が作成した書籍を削除しようとした場合、403が返り、削除できない(): void
+    public function 他人が作成した書籍を削除しようとした場合は403が返り、削除できない(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -518,7 +556,7 @@ class BookApiTest extends TestCase
 
         // Act
         Sanctum::actingAs($user);
-        $response = $this->delete(route('books.destroy', $otherBook));
+        $response = $this->deleteJson('/api/v1/books/'.$otherBook->id);
 
         // Assert
         $response->assertStatus(403);
@@ -537,5 +575,20 @@ class BookApiTest extends TestCase
         $response = $this->deleteJson('api/v1/books/9999');
 
         $response->assertStatus(404);
+    }
+
+    /** @test */
+    public function 正しい_ap_iトークンを付けずに書籍削除リクエストした場合は401が返る(): void
+    {
+        // Arrange
+        $user = User::factory()->create();
+        $book = Book::factory()->create(['user_id' => $user->id]);
+
+        // Act
+        $response = $this->withHeader('Authorization', 'Bearer invalid_token_string')->deleteJson('/api/v1/books/'.$book->id);
+
+        // Assert
+        $response->assertStatus(401);
+        $this->assertDatabaseHas('books', ['id' => $book->id]);
     }
 }

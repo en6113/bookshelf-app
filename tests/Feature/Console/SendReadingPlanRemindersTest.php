@@ -79,7 +79,7 @@ class SendReadingPlanRemindersTest extends TestCase
     }
 
     /** @test */
-    public function 未読了の読書計画の期日3日後に再エンゲージメントリマインダーが送られる(): void
+    public function 未完了の読書計画の期日3日後に再エンゲージメントリマインダーが送られる(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -101,7 +101,7 @@ class SendReadingPlanRemindersTest extends TestCase
     }
 
     /** @test */
-    public function 読了の読書計画には通知が送られないこと(): void
+    public function 完了の読書計画には通知が送られないこと(): void
     {
         // Arrange
         $user = User::factory()->create();

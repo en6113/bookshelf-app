@@ -20,7 +20,7 @@ class StoreGenreRequestTest extends TestCase
     }
 
     /** @test */
-    public function 正しい入力値でバリデーションエラーを通過する(): void
+    public function 正しい入力値でバリデーションを通過する(): void
     {
         $genre = ['name' => 'ジャンル名'];
 

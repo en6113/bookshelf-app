@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Models\ReadingPlan;
 use App\Enums\ReadingPlanStatus;
+use App\Models\ReadingPlan;
 use Illuminate\Console\Command;
 
 class ExpireReadingPlans extends Command

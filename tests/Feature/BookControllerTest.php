@@ -26,8 +26,25 @@ class BookControllerTest extends TestCase
         $response = $this->get(route('books.index'));
 
         // Assert
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertViewIs('books.index');
+    }
+
+    /** @test */
+    public function 書籍一覧は並べ替え未指定時に最新順で表示される(): void
+    {
+        // Arrange
+        $oldBook = Book::factory()->create(['created_at' => now()->subDays(5)]);
+        $newBook = Book::factory()->create(['created_at' => now()->subDays(3)]);
+
+        // Act
+        $response = $this->get(route('books.index'));
+
+        $response->assertOk();
+        $viewBooks = $response->viewData('books');
+        $this->assertCount(2, $viewBooks);
+        $this->assertEquals($newBook->id, $viewBooks[0]->id);
+        $this->assertEquals($oldBook->id, $viewBooks[1]->id);
     }
 
     /** @test */
@@ -39,7 +56,7 @@ class BookControllerTest extends TestCase
         // Act & Assert(1ページ目の検証)
         $responsePage1 = $this->get(route('books.index', ['page' => 1]));
 
-        $responsePage1->assertStatus(200);
+        $responsePage1->assertOk();
         $responsePage1->assertViewHas('books', function ($books) {
             return $books->count() === 10;
         });
@@ -47,7 +64,7 @@ class BookControllerTest extends TestCase
         // Act & Assert(2ページ目の検証)
         $responsePage2 = $this->get(route('books.index', ['page' => 2]));
 
-        $responsePage2->assertStatus(200);
+        $responsePage2->assertOk();
         $responsePage2->assertViewHas('books', function ($books) {
             return $books->count() === 1;
         });
@@ -200,18 +217,29 @@ class BookControllerTest extends TestCase
     // =========================================================================
 
     /** @test */
-    public function 未ログインでも書籍詳細画面にアクセスでき、200が返る(): void
+    public function 未ログインでも書籍詳細画面にアクセスできる(): void
     {
         $book = Book::factory()->create();
 
         $response = $this->get(route('books.show', $book));
 
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertViewIs('books.show');
     }
 
     /** @test */
-    public function 書籍の詳細情報が正しく取得できている(): void
+    public function 書籍にレビューが1件もない場合でも書籍詳細画面にアクセスできる(): void
+    {
+        $book = Book::factory()->create();
+
+        $response = $this->get(route('books.show', $book));
+
+        $response->assertOk();
+        $response->assertViewIs('books.show');
+    }
+
+    /** @test */
+    public function 書籍の詳細情報が正しく取得できる(): void
     {
         // Arrange
         $book = Book::factory()->create();
@@ -229,7 +257,7 @@ class BookControllerTest extends TestCase
         $response = $this->get(route('books.show', $book));
 
         // Assert
-        $response->assertStatus(200);
+        $response->assertOk();
         $viewBook = $response->viewData('book');
         $this->assertEquals($book->id, $viewBook->id);
 
@@ -241,16 +269,6 @@ class BookControllerTest extends TestCase
         $this->assertEquals('ジャンル名', $viewBook->genres->first()->name);
         $this->assertEquals('レビューのコメント', $viewBook->reviews->first()->comment);
         $this->assertEquals(1, $viewBook->reviews->first()->liked_by_users_count);
-    }
-
-    /** @test */
-    public function 書籍にレビューが1件もない場合も200が返る(): void
-    {
-        $book = Book::factory()->create();
-
-        $response = $this->get(route('books.show', $book));
-
-        $response->assertStatus(200);
     }
 
     // =========================================================================
@@ -284,7 +302,7 @@ class BookControllerTest extends TestCase
         $response = $this->actingAs($user)->getJson('books/isbn/'.$isbn);
 
         // Assert
-        $response->assertStatus(200);
+        $response->assertOk();
         $response->assertJson([
             'title' => 'テスト書籍タイトル',
             'author' => 'テスト著者',
@@ -409,14 +427,26 @@ class BookControllerTest extends TestCase
     // =========================================================================
 
     /** @test */
-    public function 書籍の作成者本人は編集画面にアクセスでき、200が返る(): void
+    public function 未承認ユーザーが書籍編集画面を表示しようとするとログイン画面にリダイレクトされる(): void
+    {
+        $book = Book::factory()->create();
+
+        $response = $this->get(route('books.edit', $book));
+
+        $response->assertStatus(302);
+        $response->assertRedirect('login');
+    }
+
+    /** @test */
+    public function 書籍の作成者本人は編集画面にアクセスできる(): void
     {
         $user = User::factory()->create();
         $book = Book::factory()->create(['user_id' => $user->id]);
 
         $response = $this->actingAs($user)->get(route('books.edit', $book));
 
-        $response->assertStatus(200);
+        $response->assertOk();
+        $response->assertViewIs('books.edit');
     }
 
     /** @test */
@@ -437,6 +467,17 @@ class BookControllerTest extends TestCase
     // =========================================================================
     // 書籍更新 (PUT /books/{book})
     // =========================================================================
+
+    /** @test */
+    public function 未承認ユーザーが書籍を更新しようとするとログイン画面にリダイレクトされる(): void
+    {
+        $book = Book::factory()->create();
+
+        $response = $this->put(route('books.update', $book));
+
+        $response->assertStatus(302);
+        $response->assertRedirect('login');
+    }
 
     /** @test */
     public function 書籍の作成者本人は自身が作成した書籍を更新できる(): void
@@ -466,7 +507,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 他人が作成した書籍を更新しようとした場合、403が返り、更新できない(): void
+    public function 他人が作成した書籍を更新しようとした場合は403が返り、更新されない(): void
     {
         // Arrange
         $user = User::factory()->create();
@@ -499,6 +540,17 @@ class BookControllerTest extends TestCase
     // =========================================================================
 
     /** @test */
+    public function 未承認ユーザーが書籍を削除しようとするとログイン画面にリダイレクトされる(): void
+    {
+        $book = Book::factory()->create();
+
+        $response = $this->delete(route('books.destroy', $book));
+
+        $response->assertStatus(302);
+        $response->assertRedirect('login');
+    }
+
+    /** @test */
     public function 書籍の作成者本人は自身が作成した書籍を削除できる(): void
     {
         // Arrange
@@ -520,7 +572,7 @@ class BookControllerTest extends TestCase
     }
 
     /** @test */
-    public function 他人が作成した書籍を削除しようとした場合、403が返り、削除できない(): void
+    public function 他人が作成した書籍を削除しようとした場合は403が返り、削除されない(): void
     {
         // Arrange
         $user = User::factory()->create();

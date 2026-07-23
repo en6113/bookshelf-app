@@ -16,14 +16,25 @@ class IndexReadingPlanRequestTest extends TestCase
         return Validator::make($data, $request->rules(), $request->messages());
     }
 
-    /** @test */
-    public function 有効な状態の場合はバリデーションを通過する(): void
+    /**
+     * @test
+     *
+     * @dataProvider provideStatusData
+     *  */
+    public function 状態フィルタが有効である(array $data): void
     {
-        $validator = $this->validator([
-            'status' => ReadingPlanStatus::Completed->value,
-        ]);
+        $validator = $this->validator($data);
 
         $this->assertTrue($validator->passes());
+    }
+
+    public static function provideStatusData(): array
+    {
+        return [
+            '進行中' => [['status' => ReadingPlanStatus::InProgress->value]],
+            '完了' => [['status' => ReadingPlanStatus::Completed->value]],
+            '期限切れ' => [['status' => ReadingPlanStatus::Expired->value]],
+        ];
     }
 
     /**

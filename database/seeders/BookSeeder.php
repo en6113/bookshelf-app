@@ -26,6 +26,7 @@ class BookSeeder extends Seeder
                 'published_date' => '1905-01-01',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=1',
                 'genre' => '小説',
+                'created_at' => now(),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -35,6 +36,7 @@ class BookSeeder extends Seeder
                 'published_date' => '1936-10-01',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=2',
                 'genre' => ['ビジネス', '自己啓発'],
+                'created_at' => now()->subDay(),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -44,6 +46,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2012-06-23',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=3',
                 'genre' => ['技術書'],
+                'created_at' => now()->subDays(2),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -53,6 +56,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2013-08-30',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=4',
                 'genre' => ['ビジネス', '自己啓発'],
+                'created_at' => now()->subDays(3),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -62,6 +66,7 @@ class BookSeeder extends Seeder
                 'published_date' => '1906-04-01',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=5',
                 'genre' => ['小説'],
+                'created_at' => now()->subDays(4),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -71,6 +76,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2016-09-08',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=6',
                 'genre' => ['歴史', '科学'],
+                'created_at' => now()->subDays(5),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -80,6 +86,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2017-12-18',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=7',
                 'genre' => ['技術書'],
+                'created_at' => now()->subDays(6),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -89,6 +96,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2013-12-13',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=8',
                 'genre' => ['自己啓発'],
+                'created_at' => now()->subDays(7),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -98,6 +106,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2015-03-11',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=9',
                 'genre' => ['小説'],
+                'created_at' => now()->subDays(8),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -107,6 +116,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2019-01-11',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=10',
                 'genre' => ['ビジネス', '科学'],
+                'created_at' => now()->subDays(9),
             ],
             [
                 'user_id' => $user->random()->id,
@@ -116,6 +126,7 @@ class BookSeeder extends Seeder
                 'published_date' => '2007-01-18',
                 'image_url' => 'https://placehold.co/200x300/e2e8f0/475569?text=11',
                 'genre' => ['ビジネス', '歴史'],
+                'created_at' => now()->subDays(10),
             ],
         ];
 

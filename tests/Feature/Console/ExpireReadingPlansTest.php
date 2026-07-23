@@ -52,7 +52,7 @@ class ExpireReadingPlansTest extends TestCase
     }
 
     /** @test */
-    public function 読了した読書計画は、期限が過ぎてもステータスは変更されない(): void
+    public function 完了した読書計画は、期限が過ぎてもステータスは変更されない(): void
     {
         $completedPlan = ReadingPlan::factory()->create([
             'target_date' => now()->subDay()->startOfDay(),

@@ -30,6 +30,19 @@ class UpdateGenreRequestTest extends TestCase
     }
 
     /** @test */
+    public function 正しい入力値でバリデーションを通過する(): void
+    {
+        // Arrange
+        $genre = Genre::factory()->create(['name' => '更新前のジャンル名']);
+
+        // Act
+        $validator = $this->validator(['name' => '正しい入力値のジャンル名'], $genre->id);
+
+        // Assert
+        $this->assertTrue($validator->passes());
+    }
+
+    /** @test */
     public function 更新時にジャンル名が自分自身のレコードと重複していてもバリデーションエラーにならない(): void
     {
         // Arrange
@@ -46,13 +59,26 @@ class UpdateGenreRequestTest extends TestCase
     public function 更新時にジャンル名が他のレコードと重複している場合はバリデーションエラーになる(): void
     {
         // Arrange
+        $genre = Genre::factory()->create(['name' => '更新前のジャンル名']);
         $existingGenre = Genre::factory()->create(['name' => '存在するジャンル名']);
-        $myGenre = Genre::factory()->create(['name' => '更新前のジャンル名']);
 
         // Act
-        $validator = $this->validator(['name' => '存在するジャンル名'], $myGenre->id);
+        $validator = $this->validator(['name' => $existingGenre->name], $genre->id);
 
         // Assert
+        $this->assertFalse($validator->passes());
+        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+    }
+
+    /** @test */
+    public function ジャンル名が51文字の時はバリデーションエラーになる(): void
+    {
+        // Arrange
+        $genre = Genre::factory()->create(['name' => '更新前のジャンル名']);
+
+        // Act
+        $validator = $this->validator(['name' => str_repeat('a', 51)], $genre->id);
+
         $this->assertFalse($validator->passes());
         $this->assertArrayHasKey('name', $validator->errors()->toArray());
     }

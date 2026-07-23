@@ -71,7 +71,7 @@ class SendReadingPlanReminders extends Command
                 fn ($query) => $query->whereDate('target_date', $targetDate),
             )
             ->get()
-            ->each(function (ReadingPlan $plan) use ($timing, $isOverdue) {
+            ->each(function (ReadingPlan $plan) use ($timing) {
                 $plan->user->notify(new ReadingPlanReminder($plan, $timing));
             })
             ->count();

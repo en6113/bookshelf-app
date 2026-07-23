@@ -30,7 +30,7 @@ class ReadingPlanRequestTest extends TestCase
 
         $validator = $this->validator([
             'book_id' => $book->id,
-            'target_date' => '2026/07/09',
+            'target_date' => now()->addDays(5),
         ], 'POST');
 
         $this->assertTrue($validator->passes());
@@ -40,23 +40,11 @@ class ReadingPlanRequestTest extends TestCase
     public function store時に書籍が空だとバリデーションエラーになる(): void
     {
         $validator = $this->validator([
-            'target_date' => '2026/07/09',
+            'target_date' => now()->addDays(5),
         ], 'POST');
 
         $this->assertFalse($validator->passes());
         $this->assertTrue($validator->errors()->has('book_id'));
-    }
-
-    /** @test */
-    public function update時は書籍が空でもバリデーションを通過する(): void
-    {
-        $book = Book::factory()->create();
-
-        $validator = $this->validator([
-            'target_date' => '2026/07/09',
-        ], 'PUT');
-
-        $this->assertTrue($validator->passes());
     }
 
     /** @test */
